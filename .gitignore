@@ -1,0 +1,15 @@
+# Dependencies & build
+node_modules/
+dist/
+.vite/
+
+# Local / OS
+.DS_Store
+Thumbs.db
+*.local
+.env
+.env.*
+
+# Reference & source material (not part of the current site)
+reference_site/
+Ref_photo/
