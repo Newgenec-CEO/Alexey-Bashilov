@@ -2,14 +2,20 @@
 node_modules/
 dist/
 .vite/
+*.tsbuildinfo
 
-# Local / OS
+# Local / OS / IDE
 .DS_Store
 Thumbs.db
 *.local
 .env
 .env.*
+.idea/
+.vscode/
+*.swp
+*.swo
 
-# Reference & source material (not part of the current site)
+# Reference & source material (not part of the shipped site)
 reference_site/
 Ref_photo/
+re-design/

@@ -1,4 +1,12 @@
 import { useState, useEffect } from 'react'
+import {
+  THEMES,
+  type ThemeId,
+  getStoredTheme,
+  setStoredTheme,
+  applyTheme,
+  isThemeId,
+} from './theme'
 
 // ─── Image assets (Ref_photo) ──────────────────────────────────────────────────
 const HERO_IMG = '/photos/studio_room.webp'
@@ -14,52 +22,81 @@ const GALLERY_IMGS = [
   { url: '/photos/concert_room_1.jpg', alt: 'Songwriting with guitar and notebook' },
 ]
 
+// ─── Theme switcher ────────────────────────────────────────────────────────────
+function ThemeSwitcher({
+  theme,
+  onChange,
+}: {
+  theme: ThemeId
+  onChange: (id: ThemeId) => void
+}) {
+  return (
+    <div className="theme-switcher" role="group" aria-label="Color theme">
+      {THEMES.map((t) => (
+        <button
+          key={t.id}
+          type="button"
+          className="theme-switcher__btn"
+          aria-pressed={theme === t.id}
+          aria-label={t.label}
+          onClick={() => onChange(t.id)}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 // ─── Nav ───────────────────────────────────────────────────────────────────────
-function Nav() {
+function Nav({
+  theme,
+  onThemeChange,
+}: {
+  theme: ThemeId
+  onThemeChange: (id: ThemeId) => void
+}) {
   const [scrolled, setScrolled] = useState(false)
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
+    onScroll()
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   return (
-    <header
-      className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
-      style={{
-        background: scrolled ? 'rgba(15,15,15,0.92)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(12px)' : 'none',
-        borderBottom: scrolled ? '1px solid #2E2E2E' : 'none',
-      }}
-    >
-      <div className="max-w-7xl mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
+    <header className={`site-header fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'is-scrolled' : ''}`}>
+      <div className="site-header__inner max-w-7xl mx-auto px-4 sm:px-6 md:px-10 flex items-center justify-between">
         <span
-          className="text-sm font-bold tracking-[0.2em] uppercase"
-          style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#F2F0EB' }}
+          className="text-sm font-bold tracking-[0.2em] uppercase shrink-0 text-primary"
+          style={{ fontFamily: 'Space Grotesk, sans-serif' }}
         >
           Bashilov
         </span>
-        <nav className="hidden md:flex items-center gap-8">
+
+        <nav className="hidden md:flex items-center gap-6 lg:gap-8">
           {['About', 'Music', 'Live', 'Gallery', 'Contact'].map((item) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase()}`}
-              className="text-xs tracking-widest uppercase transition-colors duration-200"
-              style={{ color: '#A8A39A' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#F2F0EB')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = '#A8A39A')}
-            >
+            <a key={item} href={`#${item.toLowerCase()}`} className="nav-link text-xs tracking-widest uppercase">
               {item}
             </a>
           ))}
           <a
             href="#contact"
-            className="text-xs tracking-widest uppercase px-4 py-2 rounded transition-all duration-200 hover:scale-105"
-            style={{ background: '#C45C3A', color: '#F2F0EB' }}
+            className="btn-primary text-xs tracking-widest uppercase px-4 py-2 rounded transition-all duration-200 hover:scale-105"
           >
             Book
           </a>
         </nav>
+
+        <div className="hidden md:block shrink-0 ml-4">
+          <ThemeSwitcher theme={theme} onChange={onThemeChange} />
+        </div>
+
+        {/* Mobile: logo + switcher row; switcher full-width via CSS order */}
+        <div className="md:hidden contents">
+          <ThemeSwitcher theme={theme} onChange={onThemeChange} />
+        </div>
       </div>
     </header>
   )
@@ -68,43 +105,30 @@ function Nav() {
 // ─── Hero ──────────────────────────────────────────────────────────────────────
 function Hero() {
   return (
-    <section className="relative w-full min-h-screen flex items-end grain" style={{ background: '#0F0F0F' }}>
+    <section className="relative w-full min-h-screen flex items-end grain bg-primary">
       <img
         src={HERO_IMG}
         alt="Alexey Bashilov performing live with acoustic guitar"
         className="absolute inset-0 w-full h-full object-cover object-center"
         style={{ filter: 'saturate(0.6) brightness(0.55)' }}
       />
-      <div
-        className="absolute inset-0"
-        style={{ background: 'linear-gradient(to top, #0F0F0F 0%, rgba(15,15,15,0.55) 40%, transparent 75%)' }}
-      />
-      <div
-        className="absolute inset-0"
-        style={{ background: 'linear-gradient(to right, rgba(15,15,15,0.6) 0%, transparent 60%)' }}
-      />
+      <div className="absolute inset-0 hero-gradient-bottom" />
+      <div className="absolute inset-0 hero-gradient-side" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 pb-20 md:pb-28 w-full">
         <div className="max-w-xl">
-          <p
-            className="text-xs tracking-[0.3em] uppercase mb-5 font-serif-em italic"
-            style={{ color: '#C45C3A' }}
-          >
+          <p className="text-xs tracking-[0.3em] uppercase mb-5 font-serif-em italic text-accent">
             Guitar · Voice · Live
           </p>
           <h1
-            className="text-5xl md:text-7xl lg:text-8xl font-bold leading-none mb-4"
-            style={{
-              fontFamily: 'Space Grotesk, sans-serif',
-              color: '#F2F0EB',
-              letterSpacing: '-0.02em',
-            }}
+            className="text-5xl md:text-7xl lg:text-8xl font-bold leading-none mb-4 text-primary"
+            style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
           >
             Alexey
             <br />
             Bashilov
           </h1>
-          <p className="text-base md:text-lg mb-8 leading-relaxed" style={{ color: '#A8A39A' }}>
+          <p className="text-base md:text-lg mb-8 leading-relaxed text-secondary">
             Original songs & carefully chosen covers.
             <br />
             250+ live performances.
@@ -112,19 +136,12 @@ function Hero() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <a
               href="#contact"
-              className="px-7 py-3.5 rounded text-sm font-semibold tracking-wide transition-all duration-200 hover:scale-105 hover:brightness-110"
-              style={{ background: '#C45C3A', color: '#F2F0EB', fontFamily: 'Space Grotesk, sans-serif' }}
+              className="btn-primary px-7 py-3.5 rounded text-sm font-semibold tracking-wide transition-all duration-200 hover:scale-105"
             >
               Book a performance
             </a>
-            <a
-              href="#gallery"
-              className="text-sm font-medium tracking-wide transition-colors duration-200 flex items-center gap-2"
-              style={{ color: '#A8A39A' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#F2F0EB')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = '#A8A39A')}
-            >
-              Watch live videos <span style={{ color: '#C45C3A' }}>→</span>
+            <a href="#gallery" className="link-muted text-sm font-medium tracking-wide flex items-center gap-2">
+              Watch live videos <span className="text-accent">→</span>
             </a>
           </div>
         </div>
@@ -132,12 +149,12 @@ function Hero() {
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
           <div
             className="w-px h-8 animate-pulse"
-            style={{ background: 'linear-gradient(to bottom, transparent, #C45C3A)' }}
+            style={{ background: 'linear-gradient(to bottom, transparent, var(--accent))' }}
           />
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: '#2E2E2E' }} />
+      <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: 'var(--border)' }} />
     </section>
   )
 }
@@ -152,13 +169,10 @@ function About() {
   ]
 
   return (
-    <section id="about" className="relative py-24 md:py-36" style={{ background: '#0F0F0F' }}>
+    <section id="about" className="relative py-24 md:py-36 bg-primary">
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-start">
-          <div
-            className="relative w-full aspect-[3/4] rounded-sm overflow-hidden"
-            style={{ background: '#1A1A1A' }}
-          >
+          <div className="relative w-full aspect-[3/4] rounded-sm overflow-hidden bg-card">
             <img
               src={ABOUT_IMG}
               alt="Alexey Bashilov portrait"
@@ -167,16 +181,16 @@ function About() {
             />
             <div
               className="absolute bottom-0 left-0 right-0 h-1/3"
-              style={{ background: 'linear-gradient(to top, rgba(139,115,85,0.18), transparent)' }}
+              style={{
+                background: 'linear-gradient(to top, color-mix(in srgb, var(--accent-warm) 18%, transparent), transparent)',
+              }}
             />
           </div>
 
           <div className="flex flex-col justify-center pt-0 md:pt-16">
-            <p className="text-xs tracking-[0.3em] uppercase mb-4" style={{ color: '#C45C3A' }}>
-              About
-            </p>
+            <p className="section-label mb-4">About</p>
             <h2
-              className="text-3xl md:text-5xl font-bold mb-6 leading-tight"
+              className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-primary"
               style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
             >
               Living sound.
@@ -184,12 +198,12 @@ function About() {
               Real stage.
             </h2>
             <blockquote
-              className="font-serif-em italic text-lg md:text-xl mb-8 leading-relaxed"
-              style={{ color: '#A8A39A', borderLeft: '2px solid #C45C3A', paddingLeft: '1.25rem' }}
+              className="font-serif-em italic text-lg md:text-xl mb-8 leading-relaxed text-secondary"
+              style={{ borderLeft: '2px solid var(--accent)', paddingLeft: '1.25rem' }}
             >
               "Every performance is a conversation — between the music, the room, and the moment."
             </blockquote>
-            <div className="space-y-4 mb-10" style={{ color: '#A8A39A' }}>
+            <div className="space-y-4 mb-10 text-secondary">
               <p className="text-sm leading-relaxed">
                 Professional guitarist and vocalist with 15 years of experience. More than 250 live
                 shows — from intimate bar sets to private celebrations and corporate events.
@@ -202,18 +216,16 @@ function About() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-px" style={{ background: '#2E2E2E' }}>
+            <div className="grid grid-cols-2 gap-px gap-line">
               {facts.map((f) => (
-                <div key={f.label} className="flex flex-col p-5" style={{ background: '#1A1A1A' }}>
+                <div key={f.label} className="flex flex-col p-5 bg-card">
                   <span
-                    className="text-2xl font-bold mb-1"
-                    style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#C45C3A' }}
+                    className="text-2xl font-bold mb-1 text-accent"
+                    style={{ fontFamily: 'Space Grotesk, sans-serif' }}
                   >
                     {f.num}
                   </span>
-                  <span className="text-xs tracking-wide uppercase" style={{ color: '#A8A39A' }}>
-                    {f.label}
-                  </span>
+                  <span className="text-xs tracking-wide uppercase text-secondary">{f.label}</span>
                 </div>
               ))}
             </div>
@@ -233,70 +245,54 @@ function Music() {
   ]
 
   return (
-    <section id="music" className="relative py-24 md:py-36 grain" style={{ background: '#111111' }}>
+    <section id="music" className="relative py-24 md:py-36 grain bg-muted">
       <div
         className="absolute inset-0 opacity-20"
         style={{
-          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 79px, #2E2E2E 80px)',
+          backgroundImage:
+            'repeating-linear-gradient(0deg, transparent, transparent 79px, var(--border) 80px)',
           pointerEvents: 'none',
         }}
       />
 
       <div className="relative max-w-7xl mx-auto px-6 md:px-10">
         <div className="mb-16">
-          <p className="text-xs tracking-[0.3em] uppercase mb-3" style={{ color: '#C45C3A' }}>
-            Repertoire
-          </p>
+          <p className="section-label mb-3">Repertoire</p>
           <h2
-            className="text-3xl md:text-5xl font-bold"
+            className="text-3xl md:text-5xl font-bold text-primary"
             style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
           >
             Music
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-px" style={{ background: '#2E2E2E' }}>
-          <div className="p-8 md:p-12" style={{ background: '#1A1A1A' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-px gap-line">
+          <div className="p-8 md:p-12 bg-card">
             <div className="flex items-center gap-3 mb-6">
-              <span
-                className="text-xs tracking-[0.25em] uppercase font-semibold"
-                style={{ color: '#C45C3A' }}
-              >
+              <span className="text-xs tracking-[0.25em] uppercase font-semibold text-accent">
                 Original songs
               </span>
             </div>
-            <p className="text-sm mb-8 leading-relaxed" style={{ color: '#A8A39A' }}>
+            <p className="text-sm mb-8 leading-relaxed text-secondary">
               Songs written and composed by Alexey — shaped by years on stage, by melancholy,
               movement and the quiet between notes.
             </p>
-            <div className="space-y-px" style={{ borderTop: '1px solid #2E2E2E' }}>
+            <div className="space-y-px" style={{ borderTop: '1px solid var(--border)' }}>
               {originals.map((t, i) => (
                 <div
                   key={t.title}
-                  className="flex items-center justify-between py-4 group cursor-default transition-colors duration-150"
-                  style={{ borderBottom: '1px solid #2E2E2E' }}
+                  className="flex items-center justify-between py-4 group cursor-default"
+                  style={{ borderBottom: '1px solid var(--border)' }}
                 >
                   <div className="flex items-center gap-4">
-                    <span className="text-xs w-4 text-right" style={{ color: '#2E2E2E' }}>
+                    <span className="text-xs w-4 text-right" style={{ color: 'var(--border)' }}>
                       {String(i + 1).padStart(2, '0')}
                     </span>
-                    <span
-                      className="text-sm font-medium transition-colors"
-                      style={{ color: '#F2F0EB' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = '#C45C3A')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = '#F2F0EB')}
-                    >
-                      {t.title}
-                    </span>
+                    <span className="text-sm font-medium track-title">{t.title}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs" style={{ color: '#A8A39A' }}>
-                      {t.duration}
-                    </span>
-                    <span
-                      className="text-lg transition-transform group-hover:scale-110"
-                      style={{ color: '#C45C3A' }}
-                    >
+                    <span className="text-xs text-secondary">{t.duration}</span>
+                    <span className="text-lg text-accent transition-transform group-hover:scale-110">
                       ▷
                     </span>
                   </div>
@@ -305,40 +301,31 @@ function Music() {
             </div>
           </div>
 
-          <div className="p-8 md:p-12" style={{ background: '#161616' }}>
+          <div className="p-8 md:p-12 bg-surface-alt">
             <div className="flex items-center gap-3 mb-6">
-              <span
-                className="text-xs tracking-[0.25em] uppercase font-semibold"
-                style={{ color: '#8B7355' }}
-              >
+              <span className="text-xs tracking-[0.25em] uppercase font-semibold text-accent-warm">
                 Covers & atmosphere
               </span>
             </div>
-            <p className="text-sm mb-6 leading-relaxed" style={{ color: '#A8A39A' }}>
+            <p className="text-sm mb-6 leading-relaxed text-secondary">
               From{' '}
-              <span style={{ color: '#F2F0EB' }}>
-                System of a Down, Nirvana, Radiohead, The Cure
-              </span>{' '}
-              and <span style={{ color: '#F2F0EB' }}>The Beatles</span> to{' '}
-              <span style={{ color: '#F2F0EB' }}>Кино, Би-2, Звери</span> and{' '}
-              <span style={{ color: '#F2F0EB' }}>Король и Шут</span> — and many more.
+              <span className="text-primary">System of a Down, Nirvana, Radiohead, The Cure</span> and{' '}
+              <span className="text-primary">The Beatles</span> to{' '}
+              <span className="text-primary">Кино, Би-2, Звери</span> and{' '}
+              <span className="text-primary">Король и Шут</span> — and many more.
             </p>
             <div className="flex flex-wrap gap-2 mb-8">
               {['Alternative Rock', 'Classic Rock', 'Russian Rock', 'Indie', 'Post-punk', 'Acoustic'].map(
                 (tag) => (
-                  <span
-                    key={tag}
-                    className="text-xs px-3 py-1 rounded-full"
-                    style={{ background: '#2E2E2E', color: '#A8A39A' }}
-                  >
+                  <span key={tag} className="tag-chip text-xs px-3 py-1 rounded-full">
                     {tag}
                   </span>
                 ),
               )}
             </div>
             <p
-              className="text-xs leading-relaxed italic font-serif-em"
-              style={{ color: '#A8A39A', borderLeft: '1px solid #8B7355', paddingLeft: '1rem' }}
+              className="text-xs leading-relaxed italic font-serif-em text-secondary"
+              style={{ borderLeft: '1px solid var(--accent-warm)', paddingLeft: '1rem' }}
             >
               Full repertoire available on request. The program is always tailored to the event and
               its mood.
@@ -347,9 +334,9 @@ function Music() {
         </div>
 
         <div className="mt-8 text-center">
-          <p className="text-sm font-serif-em italic" style={{ color: '#A8A39A' }}>
+          <p className="text-sm font-serif-em italic text-secondary">
             Looking for a specific song or mood?{' '}
-            <a href="#contact" style={{ color: '#C45C3A' }}>
+            <a href="#contact" className="link-accent">
               Just tell me.
             </a>
           </p>
@@ -386,64 +373,51 @@ function Booking() {
   ]
 
   return (
-    <section id="live" className="py-24 md:py-36" style={{ background: '#0F0F0F' }}>
+    <section id="live" className="py-24 md:py-36 bg-primary">
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="mb-16">
-          <p className="text-xs tracking-[0.3em] uppercase mb-3" style={{ color: '#C45C3A' }}>
-            Formats
-          </p>
+          <p className="section-label mb-3">Formats</p>
           <h2
-            className="text-3xl md:text-5xl font-bold"
+            className="text-3xl md:text-5xl font-bold text-primary"
             style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
           >
             Live performances
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-px mb-16" style={{ background: '#2E2E2E' }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-px mb-16 gap-line">
           {formats.map((f) => (
-            <div
-              key={f.title}
-              className="group p-8 transition-colors duration-300"
-              style={{ background: '#1A1A1A' }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#1E1E1E')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = '#1A1A1A')}
-            >
-              <span className="block text-2xl mb-5" style={{ color: '#C45C3A' }}>
-                {f.icon}
-              </span>
-              <h3 className="text-lg font-semibold mb-3" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            <div key={f.title} className="group p-8 bg-card transition-colors duration-300">
+              <span className="block text-2xl mb-5 text-accent">{f.icon}</span>
+              <h3
+                className="text-lg font-semibold mb-3 text-primary"
+                style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+              >
                 {f.title}
               </h3>
-              <p className="text-sm leading-relaxed" style={{ color: '#A8A39A' }}>
-                {f.desc}
-              </p>
+              <p className="text-sm leading-relaxed text-secondary">{f.desc}</p>
             </div>
           ))}
         </div>
 
         <div className="mb-12">
-          <p className="text-xs tracking-[0.25em] uppercase mb-8" style={{ color: '#A8A39A' }}>
-            How it works
-          </p>
+          <p className="text-xs tracking-[0.25em] uppercase mb-8 text-secondary">How it works</p>
           <div className="flex flex-col md:flex-row gap-8 md:gap-0">
             {steps.map((s, i) => (
               <div key={s.n} className="flex-1 flex items-start gap-5 relative">
                 <div>
                   <span
-                    className="text-xs font-bold tracking-widest"
-                    style={{ color: '#C45C3A', fontFamily: 'Space Grotesk, sans-serif' }}
+                    className="text-xs font-bold tracking-widest text-accent"
+                    style={{ fontFamily: 'Space Grotesk, sans-serif' }}
                   >
                     {s.n}
                   </span>
-                  <p className="mt-2 text-sm leading-relaxed" style={{ color: '#F2F0EB' }}>
-                    {s.text}
-                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-primary">{s.text}</p>
                 </div>
                 {i < steps.length - 1 && (
                   <div
                     className="hidden md:block absolute right-0 top-1 w-8 h-px"
-                    style={{ background: '#2E2E2E' }}
+                    style={{ background: 'var(--border)' }}
                   />
                 )}
               </div>
@@ -453,8 +427,7 @@ function Booking() {
 
         <a
           href="#contact"
-          className="inline-flex items-center gap-2 px-8 py-4 rounded text-sm font-semibold tracking-wide transition-all duration-200 hover:scale-105 hover:brightness-110"
-          style={{ background: '#C45C3A', color: '#F2F0EB', fontFamily: 'Space Grotesk, sans-serif' }}
+          className="btn-primary inline-flex items-center gap-2 px-8 py-4 rounded text-sm font-semibold tracking-wide transition-all duration-200 hover:scale-105"
         >
           Discuss your event
         </a>
@@ -466,14 +439,12 @@ function Booking() {
 // ─── Gallery ───────────────────────────────────────────────────────────────────
 function Gallery() {
   return (
-    <section id="gallery" className="py-24 md:py-36" style={{ background: '#0A0A0A' }}>
+    <section id="gallery" className="py-24 md:py-36 bg-muted">
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="mb-12">
-          <p className="text-xs tracking-[0.3em] uppercase mb-3" style={{ color: '#C45C3A' }}>
-            Gallery
-          </p>
+          <p className="section-label mb-3">Gallery</p>
           <h2
-            className="text-3xl md:text-5xl font-bold"
+            className="text-3xl md:text-5xl font-bold text-primary"
             style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
           >
             On stage
@@ -484,8 +455,7 @@ function Gallery() {
           {GALLERY_IMGS.map((img, i) => (
             <div
               key={img.url}
-              className="break-inside-avoid overflow-hidden rounded-sm group cursor-pointer"
-              style={{ background: '#1A1A1A' }}
+              className="break-inside-avoid overflow-hidden rounded-sm group cursor-pointer bg-card"
             >
               <img
                 src={img.url}
@@ -521,69 +491,48 @@ function Contact() {
     setSent(true)
   }
 
-  const inputStyle: React.CSSProperties = {
-    background: '#111111',
-    border: '1px solid #2E2E2E',
-    borderRadius: '4px',
-    color: '#F2F0EB',
-    padding: '12px 14px',
-    fontSize: '14px',
-    width: '100%',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-    fontFamily: 'Inter, sans-serif',
-  }
-
   return (
-    <section
-      id="contact"
-      className="py-24 md:py-36"
-      style={{ background: '#0F0F0F', borderTop: '1px solid #2E2E2E' }}
-    >
+    <section id="contact" className="py-24 md:py-36 bg-primary border-t-theme">
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
           <div>
-            <p className="text-xs tracking-[0.3em] uppercase mb-4" style={{ color: '#C45C3A' }}>
-              Contact
-            </p>
+            <p className="section-label mb-4">Contact</p>
             <h2
-              className="text-3xl md:text-5xl font-bold mb-6 leading-tight"
+              className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-primary"
               style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
             >
               Let's talk.
             </h2>
-            <p className="text-sm leading-relaxed mb-10" style={{ color: '#A8A39A' }}>
+            <p className="text-sm leading-relaxed mb-10 text-secondary">
               Tell me about your event — date, place, desired mood and any special requests. I'll get
               back to you quickly.
             </p>
 
             <div className="space-y-6">
               <div
-                className="flex items-center gap-4 p-4 rounded"
-                style={{ background: '#1A1A1A', border: '1px solid #2E2E2E' }}
+                className="flex items-center gap-4 p-4 rounded bg-card"
+                style={{ border: '1px solid var(--border)' }}
               >
-                <span style={{ color: '#C45C3A', fontSize: '20px' }}>✈</span>
+                <span className="text-accent" style={{ fontSize: '20px' }}>
+                  ✈
+                </span>
                 <div>
-                  <p className="text-xs tracking-wider uppercase mb-0.5" style={{ color: '#A8A39A' }}>
+                  <p className="text-xs tracking-wider uppercase mb-0.5 text-secondary">
                     Preferred contact
                   </p>
-                  <p className="text-sm font-medium" style={{ color: '#F2F0EB' }}>
-                    Telegram
-                  </p>
+                  <p className="text-sm font-medium text-primary">Telegram</p>
                 </div>
               </div>
               <div
-                className="flex items-center gap-4 p-4 rounded"
-                style={{ background: '#1A1A1A', border: '1px solid #2E2E2E' }}
+                className="flex items-center gap-4 p-4 rounded bg-card"
+                style={{ border: '1px solid var(--border)' }}
               >
-                <span style={{ color: '#8B7355', fontSize: '20px' }}>◎</span>
+                <span className="text-accent-warm" style={{ fontSize: '20px' }}>
+                  ◎
+                </span>
                 <div>
-                  <p className="text-xs tracking-wider uppercase mb-0.5" style={{ color: '#A8A39A' }}>
-                    Location
-                  </p>
-                  <p className="text-sm font-medium" style={{ color: '#F2F0EB' }}>
-                    Moscow & tours
-                  </p>
+                  <p className="text-xs tracking-wider uppercase mb-0.5 text-secondary">Location</p>
+                  <p className="text-sm font-medium text-primary">Moscow & tours</p>
                 </div>
               </div>
             </div>
@@ -592,23 +541,19 @@ function Contact() {
           <div>
             {sent ? (
               <div className="flex flex-col items-start justify-center h-full gap-4">
-                <span className="text-3xl" style={{ color: '#C45C3A' }}>
-                  ◆
-                </span>
-                <h3 className="text-2xl font-bold" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                <span className="text-3xl text-accent">◆</span>
+                <h3
+                  className="text-2xl font-bold text-primary"
+                  style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+                >
                   Message received.
                 </h3>
-                <p className="text-sm" style={{ color: '#A8A39A' }}>
-                  I'll be in touch soon. Talk soon.
-                </p>
+                <p className="text-sm text-secondary">I'll be in touch soon. Talk soon.</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label
-                    className="block text-xs tracking-widest uppercase mb-2"
-                    style={{ color: '#A8A39A' }}
-                  >
+                  <label className="block text-xs tracking-widest uppercase mb-2 text-secondary">
                     Your name
                   </label>
                   <input
@@ -617,16 +562,11 @@ function Contact() {
                     onChange={handleChange}
                     placeholder="Alexei Ivanov"
                     required
-                    style={inputStyle}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = '#C45C3A')}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = '#2E2E2E')}
+                    className="form-control"
                   />
                 </div>
                 <div>
-                  <label
-                    className="block text-xs tracking-widest uppercase mb-2"
-                    style={{ color: '#A8A39A' }}
-                  >
+                  <label className="block text-xs tracking-widest uppercase mb-2 text-secondary">
                     Event date
                   </label>
                   <input
@@ -634,25 +574,19 @@ function Contact() {
                     name="date"
                     value={form.date}
                     onChange={handleChange}
-                    style={{ ...inputStyle, colorScheme: 'dark' }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = '#C45C3A')}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = '#2E2E2E')}
+                    className="form-control"
                   />
                 </div>
                 <div>
-                  <label
-                    className="block text-xs tracking-widest uppercase mb-2"
-                    style={{ color: '#A8A39A' }}
-                  >
+                  <label className="block text-xs tracking-widest uppercase mb-2 text-secondary">
                     Format
                   </label>
                   <select
                     name="type"
                     value={form.type}
                     onChange={handleChange}
-                    style={{ ...inputStyle, cursor: 'pointer' }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = '#C45C3A')}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = '#2E2E2E')}
+                    className="form-control"
+                    style={{ cursor: 'pointer' }}
                   >
                     <option value="">Select a format</option>
                     <option value="acoustic">Acoustic set</option>
@@ -662,10 +596,7 @@ function Contact() {
                   </select>
                 </div>
                 <div>
-                  <label
-                    className="block text-xs tracking-widest uppercase mb-2"
-                    style={{ color: '#A8A39A' }}
-                  >
+                  <label className="block text-xs tracking-widest uppercase mb-2 text-secondary">
                     Message
                   </label>
                   <textarea
@@ -674,19 +605,13 @@ function Contact() {
                     onChange={handleChange}
                     rows={4}
                     placeholder="Describe your event, mood, venue..."
-                    style={{ ...inputStyle, resize: 'vertical' }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = '#C45C3A')}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = '#2E2E2E')}
+                    className="form-control"
+                    style={{ resize: 'vertical' }}
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-4 rounded text-sm font-semibold tracking-wide transition-all duration-200 hover:brightness-110 hover:scale-[1.01]"
-                  style={{
-                    background: '#C45C3A',
-                    color: '#F2F0EB',
-                    fontFamily: 'Space Grotesk, sans-serif',
-                  }}
+                  className="btn-primary w-full py-4 rounded text-sm font-semibold tracking-wide transition-all duration-200 hover:scale-[1.01]"
                 >
                   Send message
                 </button>
@@ -696,43 +621,50 @@ function Contact() {
         </div>
       </div>
 
-      <div
-        className="max-w-7xl mx-auto px-6 md:px-10 mt-20 pt-8 flex flex-col md:flex-row items-center justify-between gap-4"
-        style={{ borderTop: '1px solid #2E2E2E' }}
-      >
+      <footer className="max-w-7xl mx-auto px-6 md:px-10 mt-20 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 border-t-theme">
         <span
-          className="text-sm font-bold tracking-[0.15em] uppercase"
-          style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#F2F0EB' }}
+          className="text-sm font-bold tracking-[0.15em] uppercase text-primary"
+          style={{ fontFamily: 'Space Grotesk, sans-serif' }}
         >
           Alexey Bashilov
         </span>
         <div className="flex items-center gap-6">
           {['Telegram', 'VK', 'YouTube'].map((label) => (
-            <a
-              key={label}
-              href="#"
-              className="text-xs tracking-wide transition-colors duration-200"
-              style={{ color: '#A8A39A' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#C45C3A')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = '#A8A39A')}
-            >
+            <a key={label} href="#" className="footer-link text-xs tracking-wide">
               {label}
             </a>
           ))}
         </div>
-        <span className="text-xs" style={{ color: '#2E2E2E' }}>
+        <span className="text-xs" style={{ color: 'var(--border)' }}>
           © 2026
         </span>
-      </div>
+      </footer>
     </section>
   )
 }
 
 // ─── Root ──────────────────────────────────────────────────────────────────────
 export default function App() {
+  const [theme, setTheme] = useState<ThemeId>(() => {
+    if (typeof document !== 'undefined') {
+      const attr = document.documentElement.getAttribute('data-theme')
+      if (isThemeId(attr)) return attr
+    }
+    return getStoredTheme()
+  })
+
+  useEffect(() => {
+    applyTheme(theme)
+  }, [theme])
+
+  const handleThemeChange = (id: ThemeId) => {
+    setTheme(id)
+    setStoredTheme(id)
+  }
+
   return (
-    <div style={{ background: '#0F0F0F', minHeight: '100vh' }}>
-      <Nav />
+    <div className="bg-primary min-h-screen theme-surface">
+      <Nav theme={theme} onThemeChange={handleThemeChange} />
       <Hero />
       <About />
       <Music />
