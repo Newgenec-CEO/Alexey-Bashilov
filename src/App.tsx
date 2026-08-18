@@ -7,41 +7,90 @@ import {
   applyTheme,
   isThemeId,
 } from './theme'
+import { LOCALES, type LocaleId } from './i18n'
+import { useLocale } from './LocaleContext'
 
 // ─── Image assets (Ref_photo) ──────────────────────────────────────────────────
-const HERO_IMG = '/photos/studio_room.webp'
+const HERO_IMG = '/photos/studio_room_22.webp'
 const ABOUT_IMG = '/photos/portrait_guitar_3.jpg'
 const GALLERY_IMGS = [
-  { url: '/photos/portrait_guitar_1.jpg', alt: 'Alexey Bashilov playing acoustic guitar' },
-  { url: '/photos/portrait_guitar_2.jpg', alt: 'Studio portrait with Fender acoustic' },
-  { url: '/photos/portrait_guitar_4.jpg', alt: 'Electric guitar performance in teal plaid' },
-  { url: '/photos/album_cover.webp', alt: 'Outdoor portrait — SUNDER' },
-  { url: '/photos/studio_room_2.webp', alt: 'Intimate acoustic set with mic and amp' },
-  { url: '/photos/portrait_guitar_5.jpg', alt: 'Electric guitar studio shot' },
-  { url: '/photos/concert_room_0.jpg', alt: 'Seated with acoustic guitar' },
-  { url: '/photos/concert_room_1.jpg', alt: 'Songwriting with guitar and notebook' },
+  '/photos/portrait_guitar_1.jpg',
+  '/photos/portrait_guitar_2.jpg',
+  '/photos/portrait_guitar_4.jpg',
+  '/photos/album_cover.webp',
+  '/photos/studio_room_2.webp',
+  '/photos/portrait_guitar_5.jpg',
+  '/photos/concert_room_0.jpg',
+  '/photos/concert_room_1.jpg',
 ]
 
-// ─── Theme switcher ────────────────────────────────────────────────────────────
+function IconSun() {
+  return (
+    <svg className="theme-switcher__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </svg>
+  )
+}
+
+function IconMoon() {
+  return (
+    <svg className="theme-switcher__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z" />
+    </svg>
+  )
+}
+
 function ThemeSwitcher({
   theme,
   onChange,
+  ariaLabel,
 }: {
   theme: ThemeId
   onChange: (id: ThemeId) => void
+  ariaLabel: string
 }) {
   return (
-    <div className="theme-switcher" role="group" aria-label="Color theme">
+    <div className="theme-switcher" role="group" aria-label={ariaLabel}>
       {THEMES.map((t) => (
         <button
           key={t.id}
           type="button"
           className="theme-switcher__btn"
           aria-pressed={theme === t.id}
-          aria-label={t.label}
+          aria-label={t.ariaLabel}
+          title={t.ariaLabel}
           onClick={() => onChange(t.id)}
         >
-          {t.label}
+          {t.mode === 'light' ? <IconSun /> : <IconMoon />}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function LangSwitcher({
+  locale,
+  onChange,
+  ariaLabel,
+}: {
+  locale: LocaleId
+  onChange: (id: LocaleId) => void
+  ariaLabel: string
+}) {
+  return (
+    <div className="lang-switcher" role="group" aria-label={ariaLabel}>
+      {LOCALES.map((l) => (
+        <button
+          key={l.id}
+          type="button"
+          className="lang-switcher__btn"
+          aria-pressed={locale === l.id}
+          aria-label={l.ariaLabel}
+          title={l.ariaLabel}
+          onClick={() => onChange(l.id)}
+        >
+          {l.label}
         </button>
       ))}
     </div>
@@ -56,7 +105,9 @@ function Nav({
   theme: ThemeId
   onThemeChange: (id: ThemeId) => void
 }) {
+  const { t, locale, setLocale } = useLocale()
   const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
@@ -65,9 +116,21 @@ function Nav({
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [locale])
+
+  const navItems = [
+    { href: '#about', label: t.nav.about },
+    { href: '#music', label: t.nav.music },
+    { href: '#live', label: t.nav.live },
+    { href: '#gallery', label: t.nav.gallery },
+    { href: '#contact', label: t.nav.contact },
+  ]
+
   return (
-    <header className={`site-header fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'is-scrolled' : ''}`}>
-      <div className="site-header__inner max-w-7xl mx-auto px-4 sm:px-6 md:px-10 flex items-center justify-between">
+    <header className={`site-header fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled || menuOpen ? 'is-scrolled' : ''}`}>
+      <div className="site-header__inner max-w-7xl mx-auto px-4 sm:px-6 md:px-10 flex items-center justify-between gap-3">
         <span
           className="text-sm font-bold tracking-[0.2em] uppercase shrink-0 text-primary"
           style={{ fontFamily: 'Space Grotesk, sans-serif' }}
@@ -76,39 +139,69 @@ function Nav({
         </span>
 
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-          {['About', 'Music', 'Live', 'Gallery', 'Contact'].map((item) => (
-            <a key={item} href={`#${item.toLowerCase()}`} className="nav-link text-xs tracking-widest uppercase">
-              {item}
+          {navItems.map((item) => (
+            <a key={item.href} href={item.href} className="nav-link text-xs tracking-widest uppercase">
+              {item.label}
             </a>
           ))}
           <a
             href="#contact"
             className="btn-primary text-xs tracking-widest uppercase px-4 py-2 rounded transition-all duration-200 hover:scale-105"
           >
-            Book
+            {t.nav.book}
           </a>
         </nav>
 
-        <div className="hidden md:block shrink-0 ml-4">
-          <ThemeSwitcher theme={theme} onChange={onThemeChange} />
-        </div>
-
-        {/* Mobile: logo + switcher row; switcher full-width via CSS order */}
-        <div className="md:hidden contents">
-          <ThemeSwitcher theme={theme} onChange={onThemeChange} />
+        <div className="header-controls shrink-0">
+          <LangSwitcher locale={locale} onChange={setLocale} ariaLabel={t.nav.langGroup} />
+          <ThemeSwitcher theme={theme} onChange={onThemeChange} ariaLabel={t.nav.themeGroup} />
+          <button
+            type="button"
+            className="mobile-menu-btn md:hidden"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <span className={menuOpen ? 'is-open' : undefined} />
+          </button>
         </div>
       </div>
+
+      {menuOpen && (
+        <nav id="mobile-nav" className="mobile-nav md:hidden">
+          {navItems.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="mobile-nav__link"
+              onClick={() => setMenuOpen(false)}
+            >
+              {item.label}
+            </a>
+          ))}
+          <a
+            href="#contact"
+            className="btn-primary text-center text-xs tracking-widest uppercase px-4 py-3 rounded"
+            onClick={() => setMenuOpen(false)}
+          >
+            {t.nav.book}
+          </a>
+        </nav>
+      )}
     </header>
   )
 }
 
 // ─── Hero ──────────────────────────────────────────────────────────────────────
 function Hero() {
+  const { t } = useLocale()
+
   return (
     <section className="relative w-full min-h-screen flex items-end grain bg-primary">
       <img
         src={HERO_IMG}
-        alt="Alexey Bashilov performing live with acoustic guitar"
+        alt={t.hero.imgAlt}
         className="absolute inset-0 w-full h-full object-cover object-center"
         style={{ filter: 'saturate(0.6) brightness(0.55)' }}
       />
@@ -118,30 +211,30 @@ function Hero() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 pb-20 md:pb-28 w-full">
         <div className="max-w-xl">
           <p className="text-xs tracking-[0.3em] uppercase mb-5 font-serif-em italic text-accent">
-            Guitar · Voice · Live
+            {t.hero.eyebrow}
           </p>
           <h1
             className="text-5xl md:text-7xl lg:text-8xl font-bold leading-none mb-4 text-primary"
             style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
           >
-            Alexey
+            {t.hero.nameLine1}
             <br />
-            Bashilov
+            {t.hero.nameLine2}
           </h1>
           <p className="text-base md:text-lg mb-8 leading-relaxed text-secondary">
-            Original songs & carefully chosen covers.
+            {t.hero.lead}
             <br />
-            250+ live performances.
+            {t.hero.leadStat}
           </p>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <a
               href="#contact"
               className="btn-primary px-7 py-3.5 rounded text-sm font-semibold tracking-wide transition-all duration-200 hover:scale-105"
             >
-              Book a performance
+              {t.hero.ctaPrimary}
             </a>
             <a href="#gallery" className="link-muted text-sm font-medium tracking-wide flex items-center gap-2">
-              Watch live videos <span className="text-accent">→</span>
+              {t.hero.ctaSecondary} <span className="text-accent">→</span>
             </a>
           </div>
         </div>
@@ -161,11 +254,12 @@ function Hero() {
 
 // ─── About ─────────────────────────────────────────────────────────────────────
 function About() {
+  const { t } = useLocale()
   const facts = [
-    { num: '15+', label: 'Years on stage' },
-    { num: '250+', label: 'Live performances' },
-    { num: '2', label: 'Languages — RU & EN' },
-    { num: '∞', label: 'Repertoire on request' },
+    { num: '15+', label: t.about.facts.years },
+    { num: '250+', label: t.about.facts.shows },
+    { num: '2', label: t.about.facts.languages },
+    { num: '∞', label: t.about.facts.repertoire },
   ]
 
   return (
@@ -175,7 +269,7 @@ function About() {
           <div className="relative w-full aspect-[3/4] rounded-sm overflow-hidden bg-card">
             <img
               src={ABOUT_IMG}
-              alt="Alexey Bashilov portrait"
+              alt={t.about.imgAlt}
               className="w-full h-full object-cover object-top"
               style={{ filter: 'grayscale(30%) contrast(1.05)' }}
             />
@@ -188,32 +282,24 @@ function About() {
           </div>
 
           <div className="flex flex-col justify-center pt-0 md:pt-16">
-            <p className="section-label mb-4">About</p>
+            <p className="section-label mb-4">{t.about.label}</p>
             <h2
               className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-primary"
               style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
             >
-              Living sound.
+              {t.about.titleLine1}
               <br />
-              Real stage.
+              {t.about.titleLine2}
             </h2>
             <blockquote
               className="font-serif-em italic text-lg md:text-xl mb-8 leading-relaxed text-secondary"
               style={{ borderLeft: '2px solid var(--accent)', paddingLeft: '1.25rem' }}
             >
-              "Every performance is a conversation — between the music, the room, and the moment."
+              {t.about.quote}
             </blockquote>
             <div className="space-y-4 mb-10 text-secondary">
-              <p className="text-sm leading-relaxed">
-                Professional guitarist and vocalist with 15 years of experience. More than 250 live
-                shows — from intimate bar sets to private celebrations and corporate events.
-              </p>
-              <p className="text-sm leading-relaxed">
-                Plays both original material and a wide repertoire of covers spanning Western
-                alternative rock and classic Russian rock. Always brings his own professional
-                equipment and reads the room — creating a warm, emotional or energetic atmosphere
-                depending on the moment.
-              </p>
+              <p className="text-sm leading-relaxed">{t.about.p1}</p>
+              <p className="text-sm leading-relaxed">{t.about.p2}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-px gap-line">
@@ -238,6 +324,7 @@ function About() {
 
 // ─── Music ─────────────────────────────────────────────────────────────────────
 function Music() {
+  const { t } = useLocale()
   const originals = [
     { title: 'Тишина после', duration: '4:12' },
     { title: 'Cold Shore', duration: '3:47' },
@@ -257,12 +344,12 @@ function Music() {
 
       <div className="relative max-w-7xl mx-auto px-6 md:px-10">
         <div className="mb-16">
-          <p className="section-label mb-3">Repertoire</p>
+          <p className="section-label mb-3">{t.music.label}</p>
           <h2
             className="text-3xl md:text-5xl font-bold text-primary"
             style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
           >
-            Music
+            {t.music.title}
           </h2>
         </div>
 
@@ -270,17 +357,14 @@ function Music() {
           <div className="p-8 md:p-12 bg-card">
             <div className="flex items-center gap-3 mb-6">
               <span className="text-xs tracking-[0.25em] uppercase font-semibold text-accent">
-                Original songs
+                {t.music.originals}
               </span>
             </div>
-            <p className="text-sm mb-8 leading-relaxed text-secondary">
-              Songs written and composed by Alexey — shaped by years on stage, by melancholy,
-              movement and the quiet between notes.
-            </p>
+            <p className="text-sm mb-8 leading-relaxed text-secondary">{t.music.originalsDesc}</p>
             <div className="space-y-px" style={{ borderTop: '1px solid var(--border)' }}>
-              {originals.map((t, i) => (
+              {originals.map((track, i) => (
                 <div
-                  key={t.title}
+                  key={track.title}
                   className="flex items-center justify-between py-4 group cursor-default"
                   style={{ borderBottom: '1px solid var(--border)' }}
                 >
@@ -288,10 +372,10 @@ function Music() {
                     <span className="text-xs w-4 text-right" style={{ color: 'var(--border)' }}>
                       {String(i + 1).padStart(2, '0')}
                     </span>
-                    <span className="text-sm font-medium track-title">{t.title}</span>
+                    <span className="text-sm font-medium track-title">{track.title}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-secondary">{t.duration}</span>
+                    <span className="text-xs text-secondary">{track.duration}</span>
                     <span className="text-lg text-accent transition-transform group-hover:scale-110">
                       ▷
                     </span>
@@ -304,40 +388,37 @@ function Music() {
           <div className="p-8 md:p-12 bg-surface-alt">
             <div className="flex items-center gap-3 mb-6">
               <span className="text-xs tracking-[0.25em] uppercase font-semibold text-accent-warm">
-                Covers & atmosphere
+                {t.music.covers}
               </span>
             </div>
             <p className="text-sm mb-6 leading-relaxed text-secondary">
-              From{' '}
-              <span className="text-primary">System of a Down, Nirvana, Radiohead, The Cure</span> and{' '}
-              <span className="text-primary">The Beatles</span> to{' '}
-              <span className="text-primary">Кино, Би-2, Звери</span> and{' '}
-              <span className="text-primary">Король и Шут</span> — and many more.
+              {t.music.coversBefore}{' '}
+              <span className="text-primary">System of a Down, Nirvana, Radiohead, The Cure</span>{' '}
+              {t.music.coversAnd} <span className="text-primary">The Beatles</span> {t.music.coversTo}{' '}
+              <span className="text-primary">Кино, Би-2, Звери</span> {t.music.coversAnd}{' '}
+              <span className="text-primary">Король и Шут</span> {t.music.coversAfter}
             </p>
             <div className="flex flex-wrap gap-2 mb-8">
-              {['Alternative Rock', 'Classic Rock', 'Russian Rock', 'Indie', 'Post-punk', 'Acoustic'].map(
-                (tag) => (
-                  <span key={tag} className="tag-chip text-xs px-3 py-1 rounded-full">
-                    {tag}
-                  </span>
-                ),
-              )}
+              {t.music.tags.map((tag) => (
+                <span key={tag} className="tag-chip text-xs px-3 py-1 rounded-full">
+                  {tag}
+                </span>
+              ))}
             </div>
             <p
               className="text-xs leading-relaxed italic font-serif-em text-secondary"
               style={{ borderLeft: '1px solid var(--accent-warm)', paddingLeft: '1rem' }}
             >
-              Full repertoire available on request. The program is always tailored to the event and
-              its mood.
+              {t.music.note}
             </p>
           </div>
         </div>
 
         <div className="mt-8 text-center">
           <p className="text-sm font-serif-em italic text-secondary">
-            Looking for a specific song or mood?{' '}
+            {t.music.softCta}{' '}
             <a href="#contact" className="link-accent">
-              Just tell me.
+              {t.music.softLink}
             </a>
           </p>
         </div>
@@ -348,45 +429,23 @@ function Music() {
 
 // ─── Booking ───────────────────────────────────────────────────────────────────
 function Booking() {
-  const formats = [
-    {
-      icon: '♪',
-      title: 'Acoustic sets',
-      desc: 'Intimate, warm atmosphere. Voice and guitar, up close. Perfect for small bars, restaurants, private dinners.',
-    },
-    {
-      icon: '⚡',
-      title: 'Electric full sets',
-      desc: 'Full-energy live performance with electric guitar. Wider dynamic range, bigger presence on stage.',
-    },
-    {
-      icon: '◇',
-      title: 'Private events',
-      desc: 'Birthdays, anniversaries, corporate evenings. Custom program built around the occasion and atmosphere you want.',
-    },
-  ]
-
-  const steps = [
-    { n: '01', text: 'Write about the date and format' },
-    { n: '02', text: 'Discuss repertoire and mood' },
-    { n: '03', text: 'Confirm and prepare the set' },
-  ]
+  const { t } = useLocale()
 
   return (
     <section id="live" className="py-24 md:py-36 bg-primary">
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="mb-16">
-          <p className="section-label mb-3">Formats</p>
+          <p className="section-label mb-3">{t.live.label}</p>
           <h2
             className="text-3xl md:text-5xl font-bold text-primary"
             style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
           >
-            Live performances
+            {t.live.title}
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px mb-16 gap-line">
-          {formats.map((f) => (
+          {t.live.formats.map((f) => (
             <div key={f.title} className="group p-8 bg-card transition-colors duration-300">
               <span className="block text-2xl mb-5 text-accent">{f.icon}</span>
               <h3
@@ -401,20 +460,20 @@ function Booking() {
         </div>
 
         <div className="mb-12">
-          <p className="text-xs tracking-[0.25em] uppercase mb-8 text-secondary">How it works</p>
+          <p className="text-xs tracking-[0.25em] uppercase mb-8 text-secondary">{t.live.how}</p>
           <div className="flex flex-col md:flex-row gap-8 md:gap-0">
-            {steps.map((s, i) => (
-              <div key={s.n} className="flex-1 flex items-start gap-5 relative">
+            {t.live.steps.map((text, i) => (
+              <div key={text} className="flex-1 flex items-start gap-5 relative">
                 <div>
                   <span
                     className="text-xs font-bold tracking-widest text-accent"
                     style={{ fontFamily: 'Space Grotesk, sans-serif' }}
                   >
-                    {s.n}
+                    {String(i + 1).padStart(2, '0')}
                   </span>
-                  <p className="mt-2 text-sm leading-relaxed text-primary">{s.text}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-primary">{text}</p>
                 </div>
-                {i < steps.length - 1 && (
+                {i < t.live.steps.length - 1 && (
                   <div
                     className="hidden md:block absolute right-0 top-1 w-8 h-px"
                     style={{ background: 'var(--border)' }}
@@ -429,7 +488,7 @@ function Booking() {
           href="#contact"
           className="btn-primary inline-flex items-center gap-2 px-8 py-4 rounded text-sm font-semibold tracking-wide transition-all duration-200 hover:scale-105"
         >
-          Discuss your event
+          {t.live.cta}
         </a>
       </div>
     </section>
@@ -438,28 +497,30 @@ function Booking() {
 
 // ─── Gallery ───────────────────────────────────────────────────────────────────
 function Gallery() {
+  const { t } = useLocale()
+
   return (
     <section id="gallery" className="py-24 md:py-36 bg-muted">
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="mb-12">
-          <p className="section-label mb-3">Gallery</p>
+          <p className="section-label mb-3">{t.gallery.label}</p>
           <h2
             className="text-3xl md:text-5xl font-bold text-primary"
             style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
           >
-            On stage
+            {t.gallery.title}
           </h2>
         </div>
 
         <div className="columns-2 md:columns-3 gap-3 space-y-3">
-          {GALLERY_IMGS.map((img, i) => (
+          {GALLERY_IMGS.map((url, i) => (
             <div
-              key={img.url}
+              key={url}
               className="break-inside-avoid overflow-hidden rounded-sm group cursor-pointer bg-card"
             >
               <img
-                src={img.url}
-                alt={img.alt}
+                src={url}
+                alt={t.gallery.alts[i] ?? ''}
                 className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 style={{
                   filter: i % 3 === 1 ? 'grayscale(80%) contrast(1.1)' : 'saturate(0.7) brightness(0.9)',
@@ -477,6 +538,7 @@ function Gallery() {
 
 // ─── Contact ───────────────────────────────────────────────────────────────────
 function Contact() {
+  const { t } = useLocale()
   const [form, setForm] = useState({ name: '', date: '', type: '', message: '' })
   const [sent, setSent] = useState(false)
 
@@ -496,17 +558,14 @@ function Contact() {
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
           <div>
-            <p className="section-label mb-4">Contact</p>
+            <p className="section-label mb-4">{t.contact.label}</p>
             <h2
               className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-primary"
               style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
             >
-              Let's talk.
+              {t.contact.title}
             </h2>
-            <p className="text-sm leading-relaxed mb-10 text-secondary">
-              Tell me about your event — date, place, desired mood and any special requests. I'll get
-              back to you quickly.
-            </p>
+            <p className="text-sm leading-relaxed mb-10 text-secondary">{t.contact.lead}</p>
 
             <div className="space-y-6">
               <div
@@ -518,7 +577,7 @@ function Contact() {
                 </span>
                 <div>
                   <p className="text-xs tracking-wider uppercase mb-0.5 text-secondary">
-                    Preferred contact
+                    {t.contact.preferred}
                   </p>
                   <p className="text-sm font-medium text-primary">Telegram</p>
                 </div>
@@ -531,8 +590,10 @@ function Contact() {
                   ◎
                 </span>
                 <div>
-                  <p className="text-xs tracking-wider uppercase mb-0.5 text-secondary">Location</p>
-                  <p className="text-sm font-medium text-primary">Moscow & tours</p>
+                  <p className="text-xs tracking-wider uppercase mb-0.5 text-secondary">
+                    {t.contact.location}
+                  </p>
+                  <p className="text-sm font-medium text-primary">{t.contact.locationValue}</p>
                 </div>
               </div>
             </div>
@@ -546,28 +607,28 @@ function Contact() {
                   className="text-2xl font-bold text-primary"
                   style={{ fontFamily: 'Space Grotesk, sans-serif' }}
                 >
-                  Message received.
+                  {t.contact.successTitle}
                 </h3>
-                <p className="text-sm text-secondary">I'll be in touch soon. Talk soon.</p>
+                <p className="text-sm text-secondary">{t.contact.successBody}</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-xs tracking-widest uppercase mb-2 text-secondary">
-                    Your name
+                    {t.contact.name}
                   </label>
                   <input
                     name="name"
                     value={form.name}
                     onChange={handleChange}
-                    placeholder="Alexei Ivanov"
+                    placeholder={t.contact.namePlaceholder}
                     required
                     className="form-control"
                   />
                 </div>
                 <div>
                   <label className="block text-xs tracking-widest uppercase mb-2 text-secondary">
-                    Event date
+                    {t.contact.date}
                   </label>
                   <input
                     type="date"
@@ -579,7 +640,7 @@ function Contact() {
                 </div>
                 <div>
                   <label className="block text-xs tracking-widest uppercase mb-2 text-secondary">
-                    Format
+                    {t.contact.format}
                   </label>
                   <select
                     name="type"
@@ -588,23 +649,23 @@ function Contact() {
                     className="form-control"
                     style={{ cursor: 'pointer' }}
                   >
-                    <option value="">Select a format</option>
-                    <option value="acoustic">Acoustic set</option>
-                    <option value="electric">Full electric set</option>
-                    <option value="private">Private event</option>
-                    <option value="other">Other</option>
+                    <option value="">{t.contact.formatPlaceholder}</option>
+                    <option value="acoustic">{t.contact.formatAcoustic}</option>
+                    <option value="electric">{t.contact.formatElectric}</option>
+                    <option value="private">{t.contact.formatPrivate}</option>
+                    <option value="other">{t.contact.formatOther}</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs tracking-widest uppercase mb-2 text-secondary">
-                    Message
+                    {t.contact.message}
                   </label>
                   <textarea
                     name="message"
                     value={form.message}
                     onChange={handleChange}
                     rows={4}
-                    placeholder="Describe your event, mood, venue..."
+                    placeholder={t.contact.messagePlaceholder}
                     className="form-control"
                     style={{ resize: 'vertical' }}
                   />
@@ -613,7 +674,7 @@ function Contact() {
                   type="submit"
                   className="btn-primary w-full py-4 rounded text-sm font-semibold tracking-wide transition-all duration-200 hover:scale-[1.01]"
                 >
-                  Send message
+                  {t.contact.submit}
                 </button>
               </form>
             )}
@@ -626,7 +687,7 @@ function Contact() {
           className="text-sm font-bold tracking-[0.15em] uppercase text-primary"
           style={{ fontFamily: 'Space Grotesk, sans-serif' }}
         >
-          Alexey Bashilov
+          {t.contact.footerName}
         </span>
         <div className="flex items-center gap-6">
           {['Telegram', 'VK', 'YouTube'].map((label) => (
@@ -652,6 +713,10 @@ export default function App() {
     }
     return getStoredTheme()
   })
+
+  useEffect(() => {
+    setStoredTheme(theme)
+  }, [])
 
   useEffect(() => {
     applyTheme(theme)

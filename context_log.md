@@ -1,5 +1,25 @@
 # Context log — site changes
 
+## 2026-07-30 — EN / RU language switcher
+
+- Added bilingual UI: **EN | RU** pill next to theme toggle
+- Full quality Russian translation of all sections (nav, hero, about, music, live, gallery, contact/form)
+- Persistence: `localStorage` key `bashilov-lang`; default **RU** (browser EN → EN)
+- Mobile: lang + theme stay in header; hamburger menu for section links
+- Files: `src/i18n.ts`, `src/LocaleContext.tsx`, updates to `App.tsx`, `main.tsx`, `index.html`, `index.css`
+
+---
+
+## 2026-07-30 — Light/Dark only (Clean + Ember)
+
+- Left **two themes**: `clean-light` (light, sun icon) and `ember` (dark, moon icon)
+- Theme switcher → compact icon toggle (no theme name labels)
+- Default theme: **Clean** (`clean-light`)
+- Legacy localStorage ids map to Clean (former lights) or Ember (former darks)
+- Unused theme CSS blocks removed from `src/index.css`
+
+---
+
 ## 2026-07-30 — Hero fog opacity (light themes) + gitignore
 
 ### Hero fog (transparency only, no hue change)

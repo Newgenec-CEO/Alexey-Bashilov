@@ -1,32 +1,37 @@
 <!doctype html>
-<html lang="en" data-theme="warm-acoustic">
+<html lang="ru" data-theme="clean-light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Alexey Bashilov — guitarist and vocalist. Original songs and carefully chosen covers. 250+ live performances."
+      content="Алексей Башилов — гитарист и вокалист. Авторские песни и тщательно подобранные каверы. Более 250 живых выступлений."
     />
-    <title>Alexey Bashilov — Guitar · Voice · Live</title>
+    <title>Алексей Башилов — Гитара · Голос · Live</title>
     <script>
       (function () {
         try {
-          var key = 'bashilov-theme'
-          var valid = [
-            'dark-rock',
-            'warm-acoustic',
-            'clean-light',
-            'soft-golden',
-            'mist',
-            'sage',
-            'ember',
-            'mocha',
-          ]
-          var stored = localStorage.getItem(key)
-          var theme = valid.indexOf(stored) !== -1 ? stored : 'warm-acoustic'
+          var themeKey = 'bashilov-theme'
+          var storedTheme = localStorage.getItem(themeKey)
+          var lightLegacy = ['clean-light', 'warm-acoustic', 'soft-golden', 'mist', 'sage']
+          var darkLegacy = ['ember', 'dark-rock', 'mocha']
+          var theme = 'clean-light'
+          if (darkLegacy.indexOf(storedTheme) !== -1) theme = 'ember'
+          else if (lightLegacy.indexOf(storedTheme) !== -1) theme = 'clean-light'
           document.documentElement.setAttribute('data-theme', theme)
+
+          var langKey = 'bashilov-lang'
+          var storedLang = localStorage.getItem(langKey)
+          var lang = 'ru'
+          if (storedLang === 'en' || storedLang === 'ru') {
+            lang = storedLang
+          } else if (navigator.language && navigator.language.toLowerCase().indexOf('en') === 0) {
+            lang = 'en'
+          }
+          document.documentElement.setAttribute('lang', lang)
         } catch (e) {
-          document.documentElement.setAttribute('data-theme', 'warm-acoustic')
+          document.documentElement.setAttribute('data-theme', 'clean-light')
+          document.documentElement.setAttribute('lang', 'ru')
         }
       })()
     </script>
