@@ -138,15 +138,15 @@ function Nav({
           Bashilov
         </span>
 
-        <nav className="hidden md:flex items-center gap-6 lg:gap-8">
+        <nav className="hidden lg:flex items-center gap-5 xl:gap-8">
           {navItems.map((item) => (
-            <a key={item.href} href={item.href} className="nav-link text-xs tracking-widest uppercase">
+            <a key={item.href} href={item.href} className="nav-link text-xs tracking-widest uppercase whitespace-nowrap">
               {item.label}
             </a>
           ))}
           <a
             href="#contact"
-            className="btn-primary text-xs tracking-widest uppercase px-4 py-2 rounded transition-all duration-200 hover:scale-105"
+            className="btn-primary site-header__book text-xs tracking-widest uppercase px-4 py-2 rounded whitespace-nowrap transition-all duration-200 hover:scale-105"
           >
             {t.nav.book}
           </a>
@@ -157,7 +157,7 @@ function Nav({
           <ThemeSwitcher theme={theme} onChange={onThemeChange} ariaLabel={t.nav.themeGroup} />
           <button
             type="button"
-            className="mobile-menu-btn md:hidden"
+            className="mobile-menu-btn lg:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
@@ -169,7 +169,7 @@ function Nav({
       </div>
 
       {menuOpen && (
-        <nav id="mobile-nav" className="mobile-nav md:hidden">
+        <nav id="mobile-nav" className="mobile-nav lg:hidden">
           {navItems.map((item) => (
             <a
               key={item.href}
@@ -198,11 +198,11 @@ function Hero() {
   const { t } = useLocale()
 
   return (
-    <section className="relative w-full min-h-screen flex items-end grain bg-primary">
+    <section className="hero relative w-full min-h-screen flex items-end grain bg-primary">
       <img
         src={HERO_IMG}
         alt={t.hero.imgAlt}
-        className="absolute inset-0 w-full h-full object-cover object-center"
+        className="hero-photo"
         style={{ filter: 'saturate(0.6) brightness(0.55)' }}
       />
       <div className="absolute inset-0 hero-gradient-bottom" />

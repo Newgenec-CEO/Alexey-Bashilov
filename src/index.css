@@ -216,6 +216,7 @@ button {
 
 .nav-link {
   color: var(--text-secondary);
+  font-weight: 500;
   transition: color 0.2s ease;
 }
 .nav-link:hover {
@@ -267,6 +268,23 @@ button {
 }
 
 /* Hero overlays use theme primary (opacity via --hero-* tokens) */
+.hero {
+  --hero-object-x: 50%;
+  --hero-object-y: 8%;
+  overflow: hidden;
+}
+
+.hero-photo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 112%;
+  object-fit: cover;
+  object-position: var(--hero-object-x) var(--hero-object-y);
+}
+
 .hero-gradient-bottom {
   background: linear-gradient(
     to top,
@@ -281,6 +299,27 @@ button {
     color-mix(in srgb, var(--bg-primary) var(--hero-side-mix, 60%), transparent) 0%,
     transparent 55%
   );
+}
+
+@media (max-width: 767px) {
+  .hero {
+    --hero-object-x: 42%;
+    --hero-object-y: 0%;
+  }
+  .hero-photo {
+    /* Start below the fixed header so the face is not under the nav */
+    top: calc(4.5rem + env(safe-area-inset-top, 0px));
+    height: 145%;
+  }
+}
+
+@media (min-width: 1280px) {
+  .hero {
+    --hero-object-y: 4%;
+  }
+  .hero-photo {
+    height: 118%;
+  }
 }
 
 /* ─── Theme switcher ───────────────────────────────────────────────────────── */
@@ -375,6 +414,12 @@ button {
   padding: 0;
 }
 
+@media (min-width: 1024px) {
+  .mobile-menu-btn {
+    display: none;
+  }
+}
+
 .mobile-menu-btn span,
 .mobile-menu-btn span::before,
 .mobile-menu-btn span::after {
@@ -451,6 +496,45 @@ button {
   background: var(--nav-scrolled);
   backdrop-filter: blur(12px);
   border-bottom-color: var(--border);
+}
+
+/* Dark theme: readable nav over the hero photo */
+[data-theme='ember'] .site-header:not(.is-scrolled) {
+  background: linear-gradient(
+    to bottom,
+    rgba(20, 18, 4, 0.78) 0%,
+    rgba(20, 18, 4, 0.28) 70%,
+    transparent 100%
+  );
+}
+
+[data-theme='ember'] .nav-link {
+  color: #f8f3ea;
+  font-weight: 600;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.7),
+    0 2px 14px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme='ember'] .nav-link:hover {
+  color: #ffffff;
+}
+
+[data-theme='ember'] .site-header .text-primary {
+  color: #faf6ef;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme='ember'] .site-header__book {
+  font-weight: 700;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.14) inset,
+    0 4px 18px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='ember'] .mobile-nav__link {
+  color: #f8f3ea;
+  font-weight: 600;
 }
 
 .site-header__inner {
