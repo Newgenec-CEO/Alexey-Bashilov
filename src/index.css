@@ -25,6 +25,12 @@
   --hero-bottom-solid: 72%;
   --grain-opacity: 0.025;
   --color-scheme: light;
+  /* Flip sources — same hex as this theme, not a second palette */
+  --anchor-paper: #f8f7f4;
+  --anchor-ink: #1a1a1a;
+  --anchor-ink-soft: #5c5c5c;
+  --anchor-accent: #2f5d50;
+  --anchor-accent-warm: #5a7a6e;
 }
 
 /* ─── Dark: Ember ──────────────────────────────────────────────────────────── */
@@ -48,6 +54,11 @@
   --hero-bottom-solid: 100%;
   --grain-opacity: 0.04;
   --color-scheme: dark;
+  --anchor-paper: #f2e6d4;
+  --anchor-ink: #141204;
+  --anchor-ink-soft: #54442b;
+  --anchor-accent: #e8985e;
+  --anchor-accent-warm: #a9714b;
 }
 
 /* ─── Base ─────────────────────────────────────────────────────────────────── */
@@ -100,6 +111,14 @@ button {
 }
 
 /* Grain overlay */
+.grain {
+  isolation: isolate;
+}
+
+.grain > .relative {
+  z-index: 2;
+}
+
 .grain::after {
   content: '';
   position: absolute;
@@ -162,7 +181,7 @@ button {
   color: var(--text-secondary);
 }
 .text-accent {
-  color: var(--accent);
+  color: var(--accent-ink, var(--accent));
 }
 .text-accent-warm {
   color: var(--accent-warm);
@@ -189,58 +208,120 @@ button {
   background-color: var(--accent);
   color: var(--btn-text);
   font-family: 'Space Grotesk', sans-serif;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 16%, transparent);
   transition:
-    background-color 0.2s ease,
-    transform 0.2s ease,
-    filter 0.2s ease;
+    background-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 .btn-primary:hover {
   background-color: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 20%, transparent),
+    0 12px 28px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 12%, transparent);
 }
 
 .link-muted {
   color: var(--text-secondary);
-  transition: color 0.2s ease;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 1px;
+  transition:
+    color 0.25s ease,
+    background-size 0.35s ease;
 }
 .link-muted:hover {
   color: var(--text-primary);
+  background-size: 100% 1px;
 }
 
 .link-accent {
-  color: var(--accent);
-  transition: color 0.2s ease;
+  color: var(--accent-ink, var(--accent));
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 1px;
+  transition:
+    color 0.25s ease,
+    background-size 0.35s ease;
 }
 .link-accent:hover {
   color: var(--accent-hover);
+  background-size: 100% 1px;
 }
 
 .nav-link {
   color: var(--text-secondary);
   font-weight: 500;
-  transition: color 0.2s ease;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 1px;
+  transition:
+    color 0.25s ease,
+    background-size 0.35s ease;
 }
 .nav-link:hover {
   color: var(--text-primary);
+  background-size: 100% 1px;
 }
 
 .section-label {
-  color: var(--accent);
-  font-size: 0.75rem;
-  letter-spacing: 0.3em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--kicker, var(--accent));
+  font-family: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  line-height: 1;
   text-transform: uppercase;
 }
+.section-label::before {
+  content: '';
+  width: 1.35rem;
+  height: 1px;
+  background: currentColor;
+}
 
+.track-row {
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.25s ease;
+}
 .track-title {
   color: var(--text-primary);
-  transition: color 0.15s ease;
+  transition: color 0.2s ease;
 }
-.track-title:hover {
-  color: var(--accent);
+@media (hover: hover) and (pointer: fine) {
+  .track-row:hover {
+    background-color: color-mix(in srgb, var(--accent-ink, var(--accent)) 8%, transparent);
+  }
+  .track-row:hover .track-title {
+    color: var(--accent-ink, var(--accent));
+  }
 }
 
 .tag-chip {
   background-color: var(--border);
   color: var(--text-secondary);
+  transition:
+    transform 0.25s ease,
+    color 0.25s ease,
+    background-color 0.25s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .tag-chip:hover {
+    transform: translateY(-2px);
+    color: var(--text-primary);
+    background-color: color-mix(in srgb, var(--accent-ink, var(--accent)) 16%, var(--border));
+  }
 }
 
 .form-control {
@@ -252,19 +333,33 @@ button {
   font-size: 14px;
   width: 100%;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
   font-family: 'Inter', sans-serif;
+}
+.form-control:hover {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
 }
 .form-control:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .footer-link {
   color: var(--text-secondary);
-  transition: color 0.2s ease;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 1px;
+  transition:
+    color 0.25s ease,
+    background-size 0.35s ease;
 }
 .footer-link:hover {
-  color: var(--accent);
+  color: var(--accent-ink, var(--accent));
+  background-size: 100% 1px;
 }
 
 /* Hero overlays use theme primary (opacity via --hero-* tokens) */
@@ -560,5 +655,262 @@ button {
   .mobile-menu-btn {
     width: 36px;
     height: 36px;
+  }
+}
+
+/* ─── Polarity, motion, rhythm ─────────────────────────────────────────────── */
+.section {
+  position: relative;
+  scroll-margin-top: 4.75rem;
+  padding-top: clamp(5.75rem, 11vw, 9.75rem);
+  padding-bottom: clamp(5.75rem, 11vw, 9.75rem);
+}
+
+.section-head {
+  margin-bottom: clamp(2.75rem, 5vw, 4.25rem);
+}
+
+/* Inverted band uses the active theme's own ink/paper, not the other theme. */
+[data-theme='clean-light'] .section-flip {
+  --bg-primary: var(--anchor-ink);
+  --bg-secondary: color-mix(in srgb, var(--anchor-ink) 86%, var(--anchor-paper));
+  --bg-muted: color-mix(in srgb, var(--anchor-ink) 93%, var(--anchor-paper));
+  --surface-alt: color-mix(in srgb, var(--anchor-ink) 82%, var(--anchor-paper));
+  --card-bg: color-mix(in srgb, var(--anchor-ink) 76%, var(--anchor-paper));
+  --text-primary: var(--anchor-paper);
+  --text-secondary: color-mix(in srgb, var(--anchor-paper) 78%, var(--anchor-ink-soft));
+  --border: color-mix(in srgb, var(--anchor-paper) 42%, var(--anchor-ink));
+  color: var(--text-primary);
+  --input-bg: color-mix(in srgb, var(--anchor-ink) 70%, var(--anchor-paper));
+  --accent-ink: color-mix(in srgb, var(--anchor-accent) 46%, var(--anchor-paper));
+  --accent-warm: color-mix(in srgb, var(--anchor-accent-warm) 42%, var(--anchor-paper));
+  --kicker: var(--accent-ink);
+  --color-scheme: dark;
+  --grain-opacity: 0.14;
+}
+
+[data-theme='ember'] .section-flip {
+  --bg-primary: var(--anchor-paper);
+  --bg-secondary: color-mix(in srgb, var(--anchor-paper) 78%, white);
+  --bg-muted: color-mix(in srgb, var(--anchor-paper) 88%, var(--anchor-ink));
+  --surface-alt: color-mix(in srgb, var(--anchor-paper) 92%, white);
+  --card-bg: color-mix(in srgb, var(--anchor-paper) 64%, white);
+  --text-primary: var(--anchor-ink);
+  --text-secondary: var(--anchor-ink-soft);
+  --border: color-mix(in srgb, var(--anchor-ink-soft) 34%, var(--anchor-paper));
+  color: var(--text-primary);
+  --input-bg: color-mix(in srgb, var(--anchor-paper) 72%, white);
+  --accent-ink: color-mix(in srgb, var(--anchor-accent) 58%, var(--anchor-ink));
+  --accent-warm: color-mix(in srgb, var(--anchor-accent-warm) 72%, var(--anchor-ink));
+  --kicker: var(--accent-ink);
+  --color-scheme: light;
+  --grain-opacity: 0.05;
+}
+
+[data-theme='clean-light'] .section-flip.grain::after,
+[data-theme='ember'] .section-flip.grain::after {
+  mix-blend-mode: overlay;
+  opacity: 0.55;
+}
+
+[data-theme='ember'] .section-flip.grain::after {
+  mix-blend-mode: multiply;
+  opacity: var(--grain-opacity);
+}
+
+/* Reveal: visible unless JS has taken over. */
+.reveal {
+  opacity: 1;
+  transform: none;
+}
+
+html.js .reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.85s ease var(--d, 0ms),
+    transform 0.85s cubic-bezier(0.22, 0.61, 0.36, 1) var(--d, 0ms);
+}
+
+html.js .reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Column masonry breaks if the column item itself is transformed. */
+html.js .reveal-fade,
+html.js .reveal-fade.is-in {
+  transform: none;
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+html.js .hero-seq__item {
+  animation: hero-rise 0.95s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+html.js .hero-seq__item:nth-child(1) { animation-delay: 0.06s; }
+html.js .hero-seq__item:nth-child(2) { animation-delay: 0.18s; }
+html.js .hero-seq__item:nth-child(3) { animation-delay: 0.34s; }
+html.js .hero-seq__item:nth-child(4) { animation-delay: 0.48s; }
+
+/* Color window. Without JS the photo is already in its graded color. */
+.hero-photo {
+  filter: saturate(0.78) brightness(0.66) contrast(1.04);
+}
+
+.color-window:not(.hero-photo) {
+  filter: saturate(0.92) contrast(1.03);
+}
+
+.color-window {
+  transition: filter 1.15s ease, transform 0.7s ease;
+}
+
+html.js .hero-photo.color-window:not(.is-in) {
+  filter: grayscale(1) saturate(0.2) brightness(0.6) contrast(1.05);
+}
+
+html.js .hero-photo.color-window.is-in {
+  filter: saturate(0.78) brightness(0.66) contrast(1.04);
+}
+
+html.js .color-window:not(.hero-photo):not(.is-in) {
+  filter: grayscale(0.92) saturate(0.2) brightness(0.98) contrast(1.02);
+}
+
+html.js .color-window:not(.hero-photo).is-in {
+  filter: saturate(0.92) contrast(1.04);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tilt {
+    transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+    transform-origin: center center;
+  }
+
+  html:not(.js) .tilt:hover,
+  html.js .reveal.is-in .tilt:hover,
+  html.js .tilt.is-in:hover {
+    transform: perspective(900px) rotateX(2deg) rotateY(-3.5deg) translateY(-4px);
+  }
+
+  html:not(.js) .tilt-photo:hover,
+  html.js .reveal.is-in .tilt-photo:hover {
+    transform: perspective(1000px) rotateX(1.4deg) rotateY(2.4deg) translateY(-3px);
+  }
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.form-success {
+  animation: hero-rise 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.form-success__mark {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.form-success__mark path {
+  stroke-dasharray: 28;
+  stroke-dashoffset: 28;
+  animation: form-draw 0.55s ease 0.2s forwards;
+}
+
+@keyframes form-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-surface,
+  section,
+  header,
+  footer,
+  .card-surface,
+  .theme-switcher,
+  input,
+  select,
+  textarea,
+  button,
+  .btn-primary,
+  .color-window,
+  .tilt,
+  .tag-chip,
+  .link-muted,
+  .link-accent,
+  .nav-link,
+  .footer-link {
+    transition: none;
+  }
+
+  html.js .reveal,
+  html.js .reveal.is-in,
+  html.js .hero-seq__item {
+    opacity: 1;
+    transform: none;
+    animation: none;
+    transition: none;
+  }
+
+  .btn-primary:hover,
+  .tilt:hover,
+  .tilt-photo:hover,
+  .tag-chip:hover {
+    transform: none;
+  }
+
+  html.js .color-window,
+  html.js .color-window:not(.is-in),
+  html.js .color-window.is-in {
+    filter: saturate(0.92) contrast(1.03);
+    transition: none;
+  }
+
+  html.js .hero-photo.color-window,
+  html.js .hero-photo.color-window:not(.is-in),
+  html.js .hero-photo.color-window.is-in {
+    filter: saturate(0.78) brightness(0.66) contrast(1.04);
+  }
+
+  .form-success,
+  .form-success__mark path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .animate-pulse {
+    animation: none;
+  }
+}
+
+@media (scripting: none) {
+  .reveal,
+  .hero-seq__item,
+  .color-window {
+    opacity: 1;
+    transform: none;
+    animation: none;
+    filter: none;
   }
 }

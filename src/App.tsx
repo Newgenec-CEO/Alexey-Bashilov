@@ -10,6 +10,35 @@ import {
 import { LOCALES, type LocaleId } from './i18n'
 import { useLocale } from './LocaleContext'
 
+function revealDelay(ms: number): React.CSSProperties {
+  return { '--d': `${ms}ms` } as React.CSSProperties
+}
+
+function usePageMotion() {
+  useEffect(() => {
+    const root = document.documentElement
+    root.classList.add('js')
+    const nodes = Array.from(root.querySelectorAll<HTMLElement>('[data-reveal], [data-color]'))
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) {
+      nodes.forEach((node) => node.classList.add('is-in'))
+      return
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return
+          entry.target.classList.add('is-in')
+          observer.unobserve(entry.target)
+        })
+      },
+      { threshold: 0.14, rootMargin: '0px 0px -4% 0px' },
+    )
+    nodes.forEach((node) => observer.observe(node))
+    return () => observer.disconnect()
+  }, [])
+}
+
 // ─── Image assets (Ref_photo) ──────────────────────────────────────────────────
 const HERO_IMG = '/photos/studio_room_22.webp'
 const ABOUT_IMG = '/photos/portrait_guitar_3.jpg'
@@ -146,7 +175,7 @@ function Nav({
           ))}
           <a
             href="#contact"
-            className="btn-primary site-header__book text-xs tracking-widest uppercase px-4 py-2 rounded whitespace-nowrap transition-all duration-200 hover:scale-105"
+            className="btn-primary site-header__book text-xs tracking-widest uppercase px-4 py-2 rounded whitespace-nowrap"
           >
             {t.nav.book}
           </a>
@@ -182,7 +211,7 @@ function Nav({
           ))}
           <a
             href="#contact"
-            className="btn-primary text-center text-xs tracking-widest uppercase px-4 py-3 rounded"
+            className="btn-primary mt-2 text-center text-xs tracking-widest uppercase px-4 py-3 rounded"
             onClick={() => setMenuOpen(false)}
           >
             {t.nav.book}
@@ -202,34 +231,34 @@ function Hero() {
       <img
         src={HERO_IMG}
         alt={t.hero.imgAlt}
-        className="hero-photo"
-        style={{ filter: 'saturate(0.6) brightness(0.55)' }}
+        className="hero-photo color-window"
+        data-color=""
       />
       <div className="absolute inset-0 hero-gradient-bottom" />
       <div className="absolute inset-0 hero-gradient-side" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 pb-20 md:pb-28 w-full">
-        <div className="max-w-xl">
-          <p className="text-xs tracking-[0.3em] uppercase mb-5 font-serif-em italic text-accent">
+        <div className="hero-seq max-w-xl">
+          <p className="hero-seq__item text-xs tracking-[0.3em] uppercase mb-5 font-serif-em italic text-accent">
             {t.hero.eyebrow}
           </p>
           <h1
-            className="text-5xl md:text-7xl lg:text-8xl font-bold leading-none mb-4 text-primary"
+            className="hero-seq__item text-5xl md:text-7xl lg:text-8xl font-bold leading-none mb-4 text-primary"
             style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
           >
             {t.hero.nameLine1}
             <br />
             {t.hero.nameLine2}
           </h1>
-          <p className="text-base md:text-lg mb-8 leading-relaxed text-secondary">
+          <p className="hero-seq__item text-base md:text-lg mb-8 leading-relaxed text-secondary">
             {t.hero.lead}
             <br />
             {t.hero.leadStat}
           </p>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="hero-seq__item flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <a
               href="#contact"
-              className="btn-primary px-7 py-3.5 rounded text-sm font-semibold tracking-wide transition-all duration-200 hover:scale-105"
+              className="btn-primary px-7 py-3.5 rounded text-sm font-semibold tracking-wide"
             >
               {t.hero.ctaPrimary}
             </a>
@@ -263,15 +292,16 @@ function About() {
   ]
 
   return (
-    <section id="about" className="relative py-24 md:py-36 bg-primary">
+    <section id="about" className="section bg-primary">
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-start">
-          <div className="relative w-full aspect-[3/4] rounded-sm overflow-hidden bg-card">
+          <div className="reveal" data-reveal="">
+            <div className="tilt tilt-photo group relative w-full aspect-[3/4] rounded-sm overflow-hidden bg-card">
             <img
               src={ABOUT_IMG}
               alt={t.about.imgAlt}
-              className="w-full h-full object-cover object-top"
-              style={{ filter: 'grayscale(30%) contrast(1.05)' }}
+              className="color-window w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.03]"
+              data-color=""
             />
             <div
               className="absolute bottom-0 left-0 right-0 h-1/3"
@@ -279,9 +309,10 @@ function About() {
                 background: 'linear-gradient(to top, color-mix(in srgb, var(--accent-warm) 18%, transparent), transparent)',
               }}
             />
+            </div>
           </div>
 
-          <div className="flex flex-col justify-center pt-0 md:pt-16">
+          <div className="reveal flex flex-col justify-center pt-0 md:pt-16" data-reveal="" style={revealDelay(120)}>
             <p className="section-label mb-4">{t.about.label}</p>
             <h2
               className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-primary"
@@ -332,7 +363,7 @@ function Music() {
   ]
 
   return (
-    <section id="music" className="relative py-24 md:py-36 grain bg-muted">
+    <section id="music" className="section section-flip relative grain bg-muted">
       <div
         className="absolute inset-0 opacity-20"
         style={{
@@ -343,7 +374,7 @@ function Music() {
       />
 
       <div className="relative max-w-7xl mx-auto px-6 md:px-10">
-        <div className="mb-16">
+        <div className="section-head reveal" data-reveal="">
           <p className="section-label mb-3">{t.music.label}</p>
           <h2
             className="text-3xl md:text-5xl font-bold text-primary"
@@ -354,7 +385,8 @@ function Music() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-px gap-line">
-          <div className="p-8 md:p-12 bg-card">
+          <div className="reveal h-full" data-reveal="" style={revealDelay(80)}>
+          <div className="tilt h-full p-8 md:p-12 bg-card">
             <div className="flex items-center gap-3 mb-6">
               <span className="text-xs tracking-[0.25em] uppercase font-semibold text-accent">
                 {t.music.originals}
@@ -365,11 +397,10 @@ function Music() {
               {originals.map((track, i) => (
                 <div
                   key={track.title}
-                  className="flex items-center justify-between py-4 group cursor-default"
-                  style={{ borderBottom: '1px solid var(--border)' }}
+                  className="track-row flex items-center justify-between py-4 px-2 -mx-2 group cursor-default"
                 >
                   <div className="flex items-center gap-4">
-                    <span className="text-xs w-4 text-right" style={{ color: 'var(--border)' }}>
+                    <span className="text-xs w-4 text-right text-secondary">
                       {String(i + 1).padStart(2, '0')}
                     </span>
                     <span className="text-sm font-medium track-title">{track.title}</span>
@@ -384,8 +415,10 @@ function Music() {
               ))}
             </div>
           </div>
+          </div>
 
-          <div className="p-8 md:p-12 bg-surface-alt">
+          <div className="reveal h-full" data-reveal="" style={revealDelay(160)}>
+          <div className="tilt h-full p-8 md:p-12 bg-surface-alt">
             <div className="flex items-center gap-3 mb-6">
               <span className="text-xs tracking-[0.25em] uppercase font-semibold text-accent-warm">
                 {t.music.covers}
@@ -412,9 +445,10 @@ function Music() {
               {t.music.note}
             </p>
           </div>
+          </div>
         </div>
 
-        <div className="mt-8 text-center">
+        <div className="reveal mt-8 text-center" data-reveal="" style={revealDelay(120)}>
           <p className="text-sm font-serif-em italic text-secondary">
             {t.music.softCta}{' '}
             <a href="#contact" className="link-accent">
@@ -432,9 +466,9 @@ function Booking() {
   const { t } = useLocale()
 
   return (
-    <section id="live" className="py-24 md:py-36 bg-primary">
+    <section id="live" className="section bg-primary">
       <div className="max-w-7xl mx-auto px-6 md:px-10">
-        <div className="mb-16">
+        <div className="section-head reveal" data-reveal="">
           <p className="section-label mb-3">{t.live.label}</p>
           <h2
             className="text-3xl md:text-5xl font-bold text-primary"
@@ -445,8 +479,9 @@ function Booking() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px mb-16 gap-line">
-          {t.live.formats.map((f) => (
-            <div key={f.title} className="group p-8 bg-card transition-colors duration-300">
+          {t.live.formats.map((f, i) => (
+            <div key={f.title} className="reveal h-full" data-reveal="" style={revealDelay(i * 90)}>
+            <div className="tilt group h-full p-8 bg-card">
               <span className="block text-2xl mb-5 text-accent">{f.icon}</span>
               <h3
                 className="text-lg font-semibold mb-3 text-primary"
@@ -456,10 +491,11 @@ function Booking() {
               </h3>
               <p className="text-sm leading-relaxed text-secondary">{f.desc}</p>
             </div>
+            </div>
           ))}
         </div>
 
-        <div className="mb-12">
+        <div className="reveal mb-12" data-reveal="" style={revealDelay(80)}>
           <p className="text-xs tracking-[0.25em] uppercase mb-8 text-secondary">{t.live.how}</p>
           <div className="flex flex-col md:flex-row gap-8 md:gap-0">
             {t.live.steps.map((text, i) => (
@@ -484,12 +520,14 @@ function Booking() {
           </div>
         </div>
 
-        <a
-          href="#contact"
-          className="btn-primary inline-flex items-center gap-2 px-8 py-4 rounded text-sm font-semibold tracking-wide transition-all duration-200 hover:scale-105"
-        >
-          {t.live.cta}
-        </a>
+        <div className="reveal" data-reveal="" style={revealDelay(120)}>
+          <a
+            href="#contact"
+            className="btn-primary inline-flex items-center gap-2 px-8 py-4 rounded text-sm font-semibold tracking-wide"
+          >
+            {t.live.cta}
+          </a>
+        </div>
       </div>
     </section>
   )
@@ -500,9 +538,9 @@ function Gallery() {
   const { t } = useLocale()
 
   return (
-    <section id="gallery" className="py-24 md:py-36 bg-muted">
+    <section id="gallery" className="section section-flip bg-muted">
       <div className="max-w-7xl mx-auto px-6 md:px-10">
-        <div className="mb-12">
+        <div className="section-head reveal" data-reveal="">
           <p className="section-label mb-3">{t.gallery.label}</p>
           <h2
             className="text-3xl md:text-5xl font-bold text-primary"
@@ -516,18 +554,19 @@ function Gallery() {
           {GALLERY_IMGS.map((url, i) => (
             <div
               key={url}
-              className="break-inside-avoid overflow-hidden rounded-sm group cursor-pointer bg-card"
+              className="reveal reveal-fade break-inside-avoid"
+              data-reveal=""
+              style={revealDelay((i % 3) * 80)}
             >
+              <div className="tilt overflow-hidden rounded-sm group bg-card">
               <img
                 src={url}
                 alt={t.gallery.alts[i] ?? ''}
-                className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                style={{
-                  filter: i % 3 === 1 ? 'grayscale(80%) contrast(1.1)' : 'saturate(0.7) brightness(0.9)',
-                  display: 'block',
-                }}
+                className="color-window block w-full object-cover group-hover:scale-[1.04]"
+                data-color=""
                 loading="lazy"
               />
+              </div>
             </div>
           ))}
         </div>
@@ -554,10 +593,10 @@ function Contact() {
   }
 
   return (
-    <section id="contact" className="py-24 md:py-36 bg-primary border-t-theme">
+    <section id="contact" className="section bg-primary border-t-theme">
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
-          <div>
+          <div className="reveal" data-reveal="">
             <p className="section-label mb-4">{t.contact.label}</p>
             <h2
               className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-primary"
@@ -568,10 +607,7 @@ function Contact() {
             <p className="text-sm leading-relaxed mb-10 text-secondary">{t.contact.lead}</p>
 
             <div className="space-y-6">
-              <div
-                className="flex items-center gap-4 p-4 rounded bg-card"
-                style={{ border: '1px solid var(--border)' }}
-              >
+              <div className="tilt flex items-center gap-4 p-4 rounded bg-card" style={{ border: '1px solid var(--border)' }}>
                 <span className="text-accent" style={{ fontSize: '20px' }}>
                   ✈
                 </span>
@@ -582,10 +618,7 @@ function Contact() {
                   <p className="text-sm font-medium text-primary">Telegram</p>
                 </div>
               </div>
-              <div
-                className="flex items-center gap-4 p-4 rounded bg-card"
-                style={{ border: '1px solid var(--border)' }}
-              >
+              <div className="tilt flex items-center gap-4 p-4 rounded bg-card" style={{ border: '1px solid var(--border)' }}>
                 <span className="text-accent-warm" style={{ fontSize: '20px' }}>
                   ◎
                 </span>
@@ -601,8 +634,12 @@ function Contact() {
 
           <div>
             {sent ? (
-              <div className="flex flex-col items-start justify-center h-full gap-4">
-                <span className="text-3xl text-accent">◆</span>
+              <div className="form-success flex flex-col items-start justify-center h-full gap-4" role="status">
+                <span className="form-success__mark" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12.5 9.2 17 19 7.5" />
+                  </svg>
+                </span>
                 <h3
                   className="text-2xl font-bold text-primary"
                   style={{ fontFamily: 'Space Grotesk, sans-serif' }}
@@ -612,7 +649,7 @@ function Contact() {
                 <p className="text-sm text-secondary">{t.contact.successBody}</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="reveal space-y-4" data-reveal="" style={revealDelay(100)}>
                 <div>
                   <label className="block text-xs tracking-widest uppercase mb-2 text-secondary">
                     {t.contact.name}
@@ -672,7 +709,7 @@ function Contact() {
                 </div>
                 <button
                   type="submit"
-                  className="btn-primary w-full py-4 rounded text-sm font-semibold tracking-wide transition-all duration-200 hover:scale-[1.01]"
+                  className="btn-primary w-full py-4 rounded text-sm font-semibold tracking-wide"
                 >
                   {t.contact.submit}
                 </button>
@@ -696,7 +733,7 @@ function Contact() {
             </a>
           ))}
         </div>
-        <span className="text-xs" style={{ color: 'var(--border)' }}>
+        <span className="text-xs text-secondary">
           © 2026
         </span>
       </footer>
@@ -706,6 +743,7 @@ function Contact() {
 
 // ─── Root ──────────────────────────────────────────────────────────────────────
 export default function App() {
+  usePageMotion()
   const [theme, setTheme] = useState<ThemeId>(() => {
     if (typeof document !== 'undefined') {
       const attr = document.documentElement.getAttribute('data-theme')

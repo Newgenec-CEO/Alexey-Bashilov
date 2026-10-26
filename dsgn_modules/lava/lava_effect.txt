@@ -1,0 +1,72 @@
+<div class="fx-lava fx-lava-cool" data-text="LAVA">LAVA</div>
+
+<style>
+/* Colour tokens — override to re-skin the effect:
+   --ink    main text colour (defaults to currentColor)
+   --ink-2  primary accent   --ink-3  secondary accent */
+:root { --ink: currentColor; --ink-2: #FF4FD8; --ink-3: #4FF8FF; }
+
+/* 116 Lava-Lamp — molten blobs drift and merge inside the letterforms */
+.fx-lava {
+  position: relative;
+  font: 800 40px/1.1 Arial, 'Helvetica Neue', sans-serif;
+  letter-spacing: .02em;
+  white-space: pre;
+  color: transparent;
+  background:
+    radial-gradient(circle at 24% 80%, #ffd000 0 19%, transparent 22%),
+    radial-gradient(circle at 74% 26%, #ff7a00 0 21%, transparent 24%),
+    radial-gradient(circle at 50% 58%, #ff0066 0 23%, transparent 26%),
+    radial-gradient(circle at 12% 30%, #ff2d00 0 17%, transparent 20%),
+    linear-gradient(180deg, #b00028, #4d0016 96%);
+  background-size: 150% 190%;
+  background-position: 0% 0%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 18px #ff4d1a55) drop-shadow(0 0 6px #ffb70355);
+  animation: fx-lava-drift 9s ease-in-out infinite;
+}
+.fx-lava::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: transparent;
+  background:
+    radial-gradient(circle at 32% 46%, #fff2a8 0 15%, transparent 18%),
+    radial-gradient(circle at 78% 72%, #ff7b00 0 22%, transparent 25%),
+    radial-gradient(circle at 60% 18%, #ff2d6f 0 18%, transparent 21%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  mix-blend-mode: screen;
+  animation: fx-lava-blobs 6.5s ease-in-out infinite;
+}
+@keyframes fx-lava-drift {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+}
+@keyframes fx-lava-blobs {
+  0%, 100% { background-position: 100% 0%; }
+  50% { background-position: 0% 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fx-lava { animation: none; }
+  .fx-lava::after { animation: none; }
+}
+
+.fx-lava-cool {
+  background-image:
+    radial-gradient(circle at 24% 80%, #7cf5ff 0 19%, transparent 22%),
+    radial-gradient(circle at 74% 26%, #2b7bff 0 21%, transparent 24%),
+    radial-gradient(circle at 50% 58%, #8a2be2 0 23%, transparent 26%),
+    radial-gradient(circle at 12% 30%, #00e5ff 0 17%, transparent 20%),
+    linear-gradient(180deg, #062a66, #020a1f 96%);
+}
+.fx-lava-cool::after {
+  background-image:
+    radial-gradient(circle at 32% 46%, #e8fdff 0 15%, transparent 18%),
+    radial-gradient(circle at 78% 72%, #37a0ff 0 22%, transparent 25%),
+    radial-gradient(circle at 60% 18%, #b06bff 0 18%, transparent 21%);
+}
+</style>
