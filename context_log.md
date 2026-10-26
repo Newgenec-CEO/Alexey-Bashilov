@@ -1,5 +1,42 @@
 # Context log — site changes
 
+Актуальный снимок для переноса: **v1.1.0** (2026-10-26).  
+Источник правды по цветам: `design-system.md`. Этот лог — хронология. Разбор Figma-референса: `context_analysis_ai.md` (это не описание текущего прода).
+
+На другом ПК: `npm install`, затем `npm run dev` (порт 5173). Сборка: `npm run build`.
+
+## 2026-10-26 — Motion, polarity, handoff v1.1.0
+
+Код лег в коммит «обновил эффекты ui». Версия пакета: `1.1.0`.
+
+- Reveal через `IntersectionObserver` (`usePageMotion` в `src/App.tsx`): opacity + `translateY`. Класс `js` ставится в `index.html` до отрисовки. Без этого класса и при `prefers-reduced-motion` блоки сразу видны.
+- Hero: строки появляются по очереди (CSS), не печатная машинка. Бегущей строки нет.
+- Polarity: `#music` и `#gallery` с классом `section-flip`. Инверсия внутри активной темы, через `--anchor-*` и локальные токены. Палитра Clean (`#2f5d50`) и Ember не смешивается между темами.
+- Фото: класс `color-window` — приглушённый цвет до входа в экран, затем набор цвета. В галерее reveal только по opacity (`reveal-fade`), чтобы не ломать CSS columns.
+- Tilt карточек и портрета только при `(hover: hover) and (pointer: fine)`.
+- Кикеры секций: системный monospace, uppercase, короткая черта. Ритм секций — класс `.section`.
+- Форма по-прежнему локальная (`setSent`). После отправки — кружок с галочкой (`.form-success`).
+- `dsgn_modules/expose/expose.txt` и `dsgn_modules/lava/lava_effect.txt` лежат в репозитории как сырые сниппеты. В `src/` они не подключены.
+
+### Что ещё заглушки
+- Форма никуда не уходит.
+- Telegram без ника. VK и YouTube ведут на `#`.
+- «Смотреть live-видео» ведёт на `#gallery`. Видео нет.
+- Три трека и значок ▷ без плеера и без ссылок.
+- Подписи галереи могут не совпадать с реальными кадрами.
+- Подписи кнопки меню зашиты по-английски: Open / Close menu.
+- Нет favicon и Open Graph. Запрос `/favicon.ico` даёт 404.
+
+## 2026-10-25 — Hero crop and header
+
+Коммит `other fixes`.
+
+- Десктопное меню с `lg` (1024px): язык, тема и пункты не помещались с `md`.
+- Hero-фото кадрируется отдельно. На мобильном начинается ниже фиксированной шапки.
+- В теме Ember у шапки над фото градиент и тень у ссылок, пока хедер прозрачный.
+
+---
+
 ## 2026-07-30 — EN / RU language switcher
 
 - Added bilingual UI: **EN | RU** pill next to theme toggle
