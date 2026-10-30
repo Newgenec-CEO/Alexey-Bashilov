@@ -31,6 +31,10 @@
   --anchor-ink-soft: #5c5c5c;
   --anchor-accent: #2f5d50;
   --anchor-accent-warm: #5a7a6e;
+  /* Signature sits on the pale hero wash */
+  --hero-sign-ink: #1c1915;
+  /* Emberglow on a pale hero: keep the name readable, fire stays in the shadow */
+  --hero-name-ink: #1a1a1a;
 }
 
 /* ─── Dark: Ember ──────────────────────────────────────────────────────────── */
@@ -59,6 +63,8 @@
   --anchor-ink-soft: #54442b;
   --anchor-accent: #e8985e;
   --anchor-accent-warm: #a9714b;
+  --hero-sign-ink: #f5f0e6;
+  --hero-name-ink: #ffd9a0;
 }
 
 /* ─── Base ─────────────────────────────────────────────────────────────────── */
@@ -204,6 +210,11 @@ button {
   background-color: var(--border);
 }
 
+.site-header__book,
+.hero-lightleak {
+  border-radius: 999px;
+}
+
 .btn-primary {
   background-color: var(--accent);
   color: var(--btn-text);
@@ -224,6 +235,92 @@ button {
 .btn-primary:active {
   transform: translateY(0);
   box-shadow: inset 0 1px 0 color-mix(in srgb, white 12%, transparent);
+}
+
+/* Light-leak ring around the hero booking button. Hidden until hover, then it fades out. */
+.hero-lightleak {
+  --ink-2: #ff4fd8;
+  --ink-3: #4ff8ff;
+  position: relative;
+  isolation: isolate;
+}
+
+.hero-lightleak::before,
+.hero-lightleak::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  z-index: 1;
+  box-sizing: border-box;
+  padding: 2px;
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
+.hero-lightleak::before {
+  background: linear-gradient(
+      118deg,
+      transparent 12%,
+      #ff5a1f 34%,
+      #ffd27a 44%,
+      #fff 48%,
+      transparent 62%
+    )
+    120% 0 / 240% 100%;
+  animation: hero-lightleak-a 4.4s ease-in-out infinite;
+}
+
+.hero-lightleak::after {
+  background: linear-gradient(
+      248deg,
+      #ff5a1f,
+      #ffd27a,
+      #fff,
+      var(--ink-3),
+      var(--ink-2)
+    )
+    -20% 0 / 240% 100%;
+  animation: hero-lightleak-b 5.6s ease-in-out infinite;
+}
+
+.hero-lightleak:hover::before,
+.hero-lightleak:focus-visible::before {
+  opacity: 1;
+}
+
+.hero-lightleak:hover::after,
+.hero-lightleak:focus-visible::after {
+  opacity: 0.9;
+}
+
+@keyframes hero-lightleak-a {
+  0%,
+  100% {
+    background-position: 130% 0;
+  }
+  42% {
+    background-position: -30% 0;
+  }
+}
+
+@keyframes hero-lightleak-b {
+  0%,
+  100% {
+    background-position: -30% 0;
+  }
+  55% {
+    background-position: 130% 0;
+  }
 }
 
 .link-muted {
@@ -289,6 +386,112 @@ button {
   width: 1.35rem;
   height: 1px;
   background: currentColor;
+}
+
+.repertoire-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--card, #f7efe4);
+  color: inherit;
+  text-align: left;
+  cursor: zoom-in;
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(20, 18, 4, 0.08);
+  transition:
+    transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.5s ease,
+    border-color 0.5s ease;
+}
+
+.repertoire-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.repertoire-card__title {
+  display: block;
+  padding: 0.85rem 1rem 1rem;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .repertoire-card:hover {
+    transform: translateY(-6px);
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+    box-shadow: 0 18px 42px rgba(20, 18, 4, 0.16);
+  }
+
+  .repertoire-card:hover img {
+    transform: scale(1.035);
+  }
+}
+
+.repertoire-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: rgba(10, 8, 4, 0.82);
+  animation: repertoire-fade 0.28s ease;
+}
+
+.repertoire-lightbox img {
+  justify-self: center;
+  max-width: min(920px, 100%);
+  max-height: calc(100vh - 2.5rem);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.repertoire-lightbox__close,
+.repertoire-lightbox__nav {
+  border: 0;
+  background: transparent;
+  color: #f6efe4;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.repertoire-lightbox__close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: rgba(246, 239, 228, 0.12);
+  font-size: 1.7rem;
+}
+
+.repertoire-lightbox__nav {
+  width: 2.75rem;
+  height: 4.5rem;
+  font-size: 2.4rem;
+}
+
+@keyframes repertoire-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .track-row {
@@ -763,6 +966,149 @@ html.js .hero-seq__item:nth-child(2) { animation-delay: 0.18s; }
 html.js .hero-seq__item:nth-child(3) { animation-delay: 0.34s; }
 html.js .hero-seq__item:nth-child(4) { animation-delay: 0.48s; }
 
+/* Handwritten surname. The slot keeps its height so the bottom-aligned hero
+   does not drop the first name when the ink fades between loops. */
+.hero-signature-slot {
+  margin-top: 0.08em;
+}
+
+.hero-signature {
+  width: max-content;
+  max-width: 100%;
+  margin-left: -0.04em;
+  padding: 0.08em 0.35em 0.2em 0;
+  color: var(--hero-sign-ink, #f5f0e6);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: 0;
+  transform: rotate(var(--hero-sign-tilt, -8deg));
+  transform-origin: 0% 70%;
+  filter: drop-shadow(0 0.08em 0.18em rgba(20, 16, 8, 0.28));
+  opacity: 1;
+}
+
+.hero-signature.is-fading {
+  opacity: 0;
+  transition: opacity var(--hero-sign-fade, 900ms) ease;
+}
+
+/* Emberglow on the first name. Motion and fire colours follow the effect;
+   size, font and tracking stay with the hero. */
+.hero-name {
+  color: var(--hero-name-ink, #ffd9a0);
+  animation: hero-ember 1.7s ease-in-out infinite alternate;
+}
+
+@keyframes hero-ember {
+  0% {
+    text-shadow:
+      0 -2px 6px #ffab40,
+      0 -6px 14px #ff6d00,
+      0 -12px 28px #dd2c00,
+      0 -20px 44px rgba(213, 0, 0, 0.55);
+  }
+  100% {
+    text-shadow:
+      0 -3px 8px #ffc46b,
+      0 -9px 20px #ff8f1f,
+      0 -18px 38px #ff3d00,
+      0 -30px 60px rgba(213, 0, 0, 0.8);
+  }
+}
+
+/* Aura on the About title. Grain, sheen and drift match the effect.
+   Font, size and the real heading stay with the section. */
+.hero-aura {
+  --ink: currentColor;
+  --ink-2: #ff4fd8;
+  --ink-3: #4ff8ff;
+  position: relative;
+  color: transparent;
+  background:
+    radial-gradient(56% 120% at 18% 24%, var(--ink-2) 0 16%, transparent 60%),
+    radial-gradient(52% 118% at 82% 28%, var(--ink-3) 0 14%, transparent 58%),
+    radial-gradient(60% 128% at 52% 94%, #ffd76a 0 10%, transparent 56%),
+    linear-gradient(112deg, #6d4bff, var(--ink-2) 34%, var(--ink-3) 68%, #6d4bff);
+  background-size: 210% 210%, 200% 200%, 230% 230%, 260% 100%;
+  background-position: 0% 20%, 100% 10%, 40% 100%, 0 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter:
+    drop-shadow(0 0 14px color-mix(in srgb, var(--ink-2) 45%, transparent))
+    drop-shadow(0 0 34px color-mix(in srgb, var(--ink-3) 32%, transparent));
+  animation: hero-aura-drift 8s ease-in-out infinite alternate;
+}
+
+.hero-aura::before,
+.hero-aura::after {
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  white-space: pre-line;
+  pointer-events: none;
+}
+
+.hero-aura::before {
+  content: attr(data-text) / '';
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+  -webkit-background-clip: text;
+  background-clip: text;
+  mix-blend-mode: overlay;
+  opacity: 0.45;
+  animation: hero-aura-grain 0.9s steps(1) infinite;
+}
+
+.hero-aura::after {
+  content: attr(data-text) / '';
+  background: radial-gradient(40% 130% at 30% 35%, #ffffff 0 6%, transparent 58%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  animation: hero-aura-sheen 8s ease-in-out infinite alternate;
+}
+
+@keyframes hero-aura-drift {
+  0% {
+    background-position: 0% 20%, 100% 10%, 40% 100%, 0 50%;
+  }
+  100% {
+    background-position: 100% 80%, 0% 70%, 70% 0%, 100% 50%;
+  }
+}
+
+@keyframes hero-aura-sheen {
+  0% {
+    background-position: -60% 0;
+  }
+  100% {
+    background-position: 160% 0;
+  }
+}
+
+@keyframes hero-aura-grain {
+  0% {
+    background-position: 0 0;
+  }
+  20% {
+    background-position: -24px 12px;
+  }
+  40% {
+    background-position: 18px -20px;
+  }
+  60% {
+    background-position: -14px -8px;
+  }
+  80% {
+    background-position: 22px 16px;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
 /* Color window. Without JS the photo is already in its graded color. */
 .hero-photo {
   filter: saturate(0.78) brightness(0.66) contrast(1.04);
@@ -873,11 +1219,46 @@ button:focus-visible {
     transition: none;
   }
 
+  .hero-signature,
+  .hero-signature.is-fading,
+  .hero-signature-slot {
+    transform: none;
+    transition: none;
+    animation: none;
+    opacity: 1;
+  }
+
+  .hero-aura,
+  .hero-aura::before,
+  .hero-aura::after {
+    animation: none;
+  }
+
+  .hero-lightleak::before,
+  .hero-lightleak::after {
+    animation: none;
+  }
+
+  .hero-name {
+    animation: none;
+    text-shadow:
+      0 -2px 6px #ffab40,
+      0 -6px 14px #ff6d00,
+      0 -12px 28px #dd2c00,
+      0 -20px 44px rgba(213, 0, 0, 0.55);
+  }
+
   .btn-primary:hover,
   .tilt:hover,
   .tilt-photo:hover,
-  .tag-chip:hover {
+  .tag-chip:hover,
+  .repertoire-card:hover,
+  .repertoire-card:hover img {
     transform: none;
+  }
+
+  .repertoire-lightbox {
+    animation: none;
   }
 
   html.js .color-window,

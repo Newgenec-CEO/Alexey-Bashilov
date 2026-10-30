@@ -1,4 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
+import ruSongs1 from '../song_list/russian_songs_1.jpg'
+import ruSongs2 from '../song_list/russian_songs_2.jpg'
+import foreignSongs from '../song_list/иностранные_песни.jpg'
+import sovietSongs from '../song_list/soviet_songs.jpg'
+import warSongs from '../song_list/w_songs.jpg'
+import newYearSongs from '../song_list/new_year_songs.jpg'
 import {
   THEMES,
   type ThemeId,
@@ -8,6 +15,7 @@ import {
   isThemeId,
 } from './theme'
 import { LOCALES, type LocaleId } from './i18n'
+import { HeroSignature } from './HeroSignature'
 import { useLocale } from './LocaleContext'
 
 function revealDelay(ms: number): React.CSSProperties {
@@ -175,7 +183,7 @@ function Nav({
           ))}
           <a
             href="#contact"
-            className="btn-primary site-header__book text-xs tracking-widest uppercase px-4 py-2 rounded whitespace-nowrap"
+            className="btn-primary site-header__book text-xs tracking-widest uppercase px-4 py-2 rounded-full whitespace-nowrap"
           >
             {t.nav.book}
           </a>
@@ -239,16 +247,13 @@ function Hero() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 pb-20 md:pb-28 w-full">
         <div className="hero-seq max-w-xl">
-          <p className="hero-seq__item text-xs tracking-[0.3em] uppercase mb-5 font-serif-em italic text-accent">
-            {t.hero.eyebrow}
-          </p>
           <h1
             className="hero-seq__item text-5xl md:text-7xl lg:text-8xl font-bold leading-none mb-4 text-primary"
             style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
           >
-            {t.hero.nameLine1}
-            <br />
-            {t.hero.nameLine2}
+            <span className="hero-name block">{t.hero.nameLine1}</span>
+            <span className="sr-only"> {t.hero.nameLine2}</span>
+            <HeroSignature text="Bashilov" className="text-5xl md:text-7xl lg:text-8xl" />
           </h1>
           <p className="hero-seq__item text-base md:text-lg mb-8 leading-relaxed text-secondary">
             {t.hero.lead}
@@ -258,7 +263,7 @@ function Hero() {
           <div className="hero-seq__item flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <a
               href="#contact"
-              className="btn-primary px-7 py-3.5 rounded text-sm font-semibold tracking-wide"
+              className="btn-primary hero-lightleak px-7 py-3.5 rounded-full text-sm font-semibold tracking-wide"
             >
               {t.hero.ctaPrimary}
             </a>
@@ -315,7 +320,8 @@ function About() {
           <div className="reveal flex flex-col justify-center pt-0 md:pt-16" data-reveal="" style={revealDelay(120)}>
             <p className="section-label mb-4">{t.about.label}</p>
             <h2
-              className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-primary"
+              className="hero-aura text-3xl md:text-5xl font-bold mb-6 leading-tight"
+              data-text={`${t.about.titleLine1}\n${t.about.titleLine2}`}
               style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}
             >
               {t.about.titleLine1}
@@ -353,14 +359,40 @@ function About() {
   )
 }
 
+const REPERTOIRE_SHEETS = [ruSongs1, ruSongs2, foreignSongs, sovietSongs, warSongs, newYearSongs]
+
 // ─── Music ─────────────────────────────────────────────────────────────────────
 function Music() {
   const { t } = useLocale()
-  const originals = [
-    { title: 'Тишина после', duration: '4:12' },
-    { title: 'Cold Shore', duration: '3:47' },
-    { title: 'Осколки', duration: '5:03' },
-  ]
+  const [open, setOpen] = useState<number | null>(null)
+  const closeRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (open === null) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    closeRef.current?.focus()
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(null)
+      if (event.key === 'ArrowRight') {
+        setOpen((index) => (index === null ? index : (index + 1) % REPERTOIRE_SHEETS.length))
+      }
+      if (event.key === 'ArrowLeft') {
+        setOpen((index) =>
+          index === null ? index : (index - 1 + REPERTOIRE_SHEETS.length) % REPERTOIRE_SHEETS.length,
+        )
+      }
+    }
+
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  const openTitle = open === null ? '' : t.music.sheets[open]
 
   return (
     <section id="music" className="section section-flip relative grain bg-muted">
@@ -384,69 +416,72 @@ function Music() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-px gap-line">
-          <div className="reveal h-full" data-reveal="" style={revealDelay(80)}>
-          <div className="tilt h-full p-8 md:p-12 bg-card">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="text-xs tracking-[0.25em] uppercase font-semibold text-accent">
-                {t.music.originals}
-              </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+          {REPERTOIRE_SHEETS.map((src, i) => (
+            <div key={src} className="reveal" data-reveal="" style={revealDelay(i * 70)}>
+              <button
+                type="button"
+                className="repertoire-card"
+                aria-label={`${t.music.sheets[i]}. ${t.music.openSheet}`}
+                onClick={() => setOpen(i)}
+              >
+                <img src={src} alt="" />
+                <span className="repertoire-card__title">{t.music.sheets[i]}</span>
+              </button>
             </div>
-            <p className="text-sm mb-8 leading-relaxed text-secondary">{t.music.originalsDesc}</p>
-            <div className="space-y-px" style={{ borderTop: '1px solid var(--border)' }}>
-              {originals.map((track, i) => (
-                <div
-                  key={track.title}
-                  className="track-row flex items-center justify-between py-4 px-2 -mx-2 group cursor-default"
-                >
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs w-4 text-right text-secondary">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <span className="text-sm font-medium track-title">{track.title}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-secondary">{track.duration}</span>
-                    <span className="text-lg text-accent transition-transform group-hover:scale-110">
-                      ▷
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          </div>
-
-          <div className="reveal h-full" data-reveal="" style={revealDelay(160)}>
-          <div className="tilt h-full p-8 md:p-12 bg-surface-alt">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="text-xs tracking-[0.25em] uppercase font-semibold text-accent-warm">
-                {t.music.covers}
-              </span>
-            </div>
-            <p className="text-sm mb-6 leading-relaxed text-secondary">
-              {t.music.coversBefore}{' '}
-              <span className="text-primary">System of a Down, Nirvana, Radiohead, The Cure</span>{' '}
-              {t.music.coversAnd} <span className="text-primary">The Beatles</span> {t.music.coversTo}{' '}
-              <span className="text-primary">Кино, Би-2, Звери</span> {t.music.coversAnd}{' '}
-              <span className="text-primary">Король и Шут</span> {t.music.coversAfter}
-            </p>
-            <div className="flex flex-wrap gap-2 mb-8">
-              {t.music.tags.map((tag) => (
-                <span key={tag} className="tag-chip text-xs px-3 py-1 rounded-full">
-                  {tag}
-                </span>
-              ))}
-            </div>
-            <p
-              className="text-xs leading-relaxed italic font-serif-em text-secondary"
-              style={{ borderLeft: '1px solid var(--accent-warm)', paddingLeft: '1rem' }}
-            >
-              {t.music.note}
-            </p>
-          </div>
-          </div>
+          ))}
         </div>
+
+        {open !== null &&
+          createPortal(
+          <div
+            className="repertoire-lightbox"
+            role="dialog"
+            aria-modal="true"
+            aria-label={openTitle}
+            onClick={() => setOpen(null)}
+          >
+            <button
+              ref={closeRef}
+              type="button"
+              className="repertoire-lightbox__close"
+              aria-label={t.music.closeSheet}
+              onClick={() => setOpen(null)}
+            >
+              ×
+            </button>
+            <button
+              type="button"
+              className="repertoire-lightbox__nav repertoire-lightbox__nav--prev"
+              aria-label={t.music.prevSheet}
+              onClick={(event) => {
+                event.stopPropagation()
+                setOpen((index) =>
+                  index === null ? index : (index - 1 + REPERTOIRE_SHEETS.length) % REPERTOIRE_SHEETS.length,
+                )
+              }}
+            >
+              ‹
+            </button>
+            <img
+              src={REPERTOIRE_SHEETS[open]}
+              alt={openTitle}
+              onClick={(event) => event.stopPropagation()}
+            />
+            <button
+              type="button"
+              className="repertoire-lightbox__nav repertoire-lightbox__nav--next"
+              aria-label={t.music.nextSheet}
+              onClick={(event) => {
+                event.stopPropagation()
+                setOpen((index) => (index === null ? index : (index + 1) % REPERTOIRE_SHEETS.length))
+              }}
+            >
+              ›
+            </button>
+          </div>,
+            document.body,
+          )}
 
         <div className="reveal mt-8 text-center" data-reveal="" style={revealDelay(120)}>
           <p className="text-sm font-serif-em italic text-secondary">
